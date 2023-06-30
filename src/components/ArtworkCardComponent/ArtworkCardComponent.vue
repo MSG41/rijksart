@@ -48,9 +48,9 @@ export default {
 <style scoped>
 .artwork-card {
   width: 100%;
-  max-width: 300px; /* Add a max-width to limit card width on larger screens */
+  max-width: 300px;
   border: 1px solid #ccc;
-  margin: 10px auto; /* Center the card horizontally */
+  margin: 10px auto; 
   padding: 10px;
   box-sizing: border-box;
   text-align: center;
@@ -63,8 +63,8 @@ export default {
 }
 
 .image-container {
-  max-height: 200px; /* Limit the height of the image container */
-  overflow: hidden; /* Hide any overflowing image */
+  max-height: 200px; 
+  overflow: hidden; 
 }
 
 .artwork-image {

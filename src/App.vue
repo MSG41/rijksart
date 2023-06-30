@@ -14,7 +14,6 @@ import { RouterLink, RouterView } from 'vue-router'
 </template>
 
 <style>
-@import '@/assets/main.css';
 
 .navbar {
   position: fixed;

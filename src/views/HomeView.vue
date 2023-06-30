@@ -38,20 +38,20 @@ export default {
   grid-template-columns: repeat(
     auto-fit,
     minmax(300px, 1fr)
-  ); /* Change 'auto-fill' to 'auto-fit' */
+  ); 
   gap: 20px;
   padding: 20px;
   box-sizing: border-box;
 }
 
 .search-wrapper {
-  position: sticky; /* Change 'fixed' to 'sticky' */
+  position: sticky; 
   top: 100px;
   left: 20px;
   z-index: 3;
-  /* margin: auto; */
-  width: 100%; /* Set width to 100% */
-  max-width: 600px; /* Add a maximum width for better mobile experience */
+
+  width: 100%; 
+  max-width: 600px; 
   padding: 0 10px;
   box-sizing: border-box;
 }
@@ -71,8 +71,8 @@ export default {
     position: relative;
     top: initial;
     width: 100%;
-    margin-top: 10px; /* Adjust the margin to your preference */
-    padding: 0; /* Remove padding */
+    margin-top: 10px; 
+    padding: 0; 
     box-sizing: border-box;
   }
   .artwork-grid {
