@@ -6,10 +6,12 @@
     <div v-if="store.loading" class="loading">Loading...</div>
     <div v-else class="artwork-grid">
       <ArtworkCardComponent
-        v-for="artwork in store.artworks"
-        :key="artwork.id"
+        v-for="artwork in Object.values(store.artworks)"
+        :key="artwork.objectNumber"
         :artwork="artwork"
       />
+      <!-- When this element is visible in the viewport, fetch more artworks -->
+      <div v-intersect="loadMoreArtworks" v-if="!store.reachedEnd" class="fetch-more"></div>
     </div>
   </div>
 </template>
@@ -25,14 +27,39 @@ export default {
     SearchComponent,
     ArtworkCardComponent
   },
+  directives: {
+    intersect: {
+      // When the element is visible in the viewport, call the provided method
+      beforeMount: (el, binding) => {
+        const observer = new IntersectionObserver(
+          ([entry]) => entry.isIntersecting && binding.value(),
+          { threshold: 1.0 }
+        )
+        observer.observe(el)
+      },
+      unmounted: (el, binding) => {
+        const observer = new IntersectionObserver(
+          ([entry]) => entry.isIntersecting && binding.value(),
+          { threshold: 1.0 }
+        )
+        observer.unobserve(el)
+      }
+    }
+  },
   setup() {
     const store = useRijksmuseumStore()
+
+    function loadMoreArtworks() {
+      if (!store.loading) {
+        store.searchArtworks(store.searchQuery)
+      }
+    }
 
     onMounted(() => {
       store.initializeStore()
     })
 
-    return { store }
+    return { store, loadMoreArtworks }
   }
 }
 </script>

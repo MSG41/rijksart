@@ -3,7 +3,12 @@ import { type RijksmuseumApiResponse, type ArtworkDetails } from '@/types/types'
 import { VITE_APP_API_KEY, VITE_APP_API_URL } from '../../env'
 
 export class RijksmuseumService {
-  public static async searchArtworks(query: string): Promise<RijksmuseumApiResponse> {
+  // Include pagination parameters: page and pageSize
+  public static async searchArtworks(
+    query: string,
+    page: number,
+    pageSize: number
+  ): Promise<RijksmuseumApiResponse> {
     try {
       const response: AxiosResponse<RijksmuseumApiResponse> = await axios.get(
         `${VITE_APP_API_URL}`,
@@ -12,7 +17,9 @@ export class RijksmuseumService {
             key: VITE_APP_API_KEY,
             format: 'json',
             q: query,
-            imgonly: true
+            imgonly: true,
+            p: page, // Page number
+            ps: pageSize // Number of results per page
           }
         }
       )
