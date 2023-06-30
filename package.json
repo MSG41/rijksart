@@ -22,6 +22,7 @@
     "lru-cache": "^10.0.0",
     "pinia": "^2.1.3",
     "vue": "^3.3.4",
+    "vue-intersection": "^2.0.1",
     "vue-router": "^4.2.2"
   },
   "devDependencies": {
