@@ -1,9 +1,16 @@
 @import './base.css';
 
+/* base.css */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+}
+
 #app {
   max-width: 1280px;
   margin: 0 auto;
-  font-weight: normal;
 }
 
 a,
@@ -16,12 +23,5 @@ a,
 @media (hover: hover) {
   a:hover {
     background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-@media (max-width: 660px) {
-  body {
-    display: flex;
-    place-items: center;
   }
 }

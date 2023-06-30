@@ -34,7 +34,6 @@ export class RijksmuseumService {
           }
         }
       )
-      console.log('resp: ', response.data)
       return response.data
     } catch (error) {
       console.error(error)
