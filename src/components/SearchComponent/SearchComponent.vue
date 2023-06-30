@@ -13,20 +13,56 @@
 </template>
 
 <script lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
+import { useRoute, useRouter } from 'vue-router'
 import { debounce } from 'lodash'
 
 export default {
   setup() {
     const store = useRijksmuseumStore()
-    const searchQuery = ref('')
+    const route = useRoute()
+    const router = useRouter()
+    const searchQuery = ref(store.searchQuery) // Use a ref instead of a reactive object
 
+    // Debounce the search function
     const debouncedSearch = debounce(() => {
-      store.searchArtworks(searchQuery.value)
-    }, 500) // delay of 500ms
+      const query = searchQuery.value.trim()
 
+      if (query !== store.searchQuery) {
+        store.searchQuery = query // Update the store with the value from the ref
+        store.searchArtworks(query) // Trigger the search in the store
+
+        // Push the new searchQuery to the URL
+        router.push({ name: 'home', query: { q: query } })
+      }
+    }, 500) // Delay of 500ms
+
+    // Watch for changes to the search query
     watch(searchQuery, debouncedSearch)
+
+    // Watch for changes in the route's query string
+    watch(
+      () => route.query.q,
+      (newValue) => {
+        const query = newValue as string
+
+        if (searchQuery.value !== query) {
+          searchQuery.value = query
+        }
+      }
+    )
+
+    // Perform initial search based on URL query
+    onMounted(() => {
+      const query = route.query.q as string
+
+      if (query && searchQuery.value !== query) {
+        searchQuery.value = query
+        store.searchQuery = query
+        store.searchArtworks(query)
+      }
+    })
 
     return { searchQuery }
   }

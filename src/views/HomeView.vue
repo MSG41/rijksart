@@ -18,6 +18,7 @@
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import SearchComponent from '@/components/SearchComponent/SearchComponent.vue'
 import ArtworkCardComponent from '@/components/ArtworkCardComponent/ArtworkCardComponent.vue'
+import { onMounted } from 'vue'
 
 export default {
   components: {
@@ -26,6 +27,11 @@ export default {
   },
   setup() {
     const store = useRijksmuseumStore()
+
+    onMounted(() => {
+      store.initializeStore()
+    })
+
     return { store }
   }
 }
@@ -35,23 +41,20 @@ export default {
 .artwork-grid {
   display: grid;
   margin-top: 100px;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(300px, 1fr)
-  ); 
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
   padding: 20px;
   box-sizing: border-box;
 }
 
 .search-wrapper {
-  position: sticky; 
+  position: sticky;
   top: 100px;
   left: 20px;
   z-index: 3;
 
-  width: 100%; 
-  max-width: 600px; 
+  width: 100%;
+  max-width: 600px;
   padding: 0 10px;
   box-sizing: border-box;
 }
@@ -71,8 +74,8 @@ export default {
     position: relative;
     top: initial;
     width: 100%;
-    margin-top: 10px; 
-    padding: 0; 
+    margin-top: 10px;
+    padding: 0;
     box-sizing: border-box;
   }
   .artwork-grid {

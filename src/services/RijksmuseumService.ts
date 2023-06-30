@@ -1,21 +1,21 @@
-// RijksmuseumService.ts
 import axios, { type AxiosResponse } from 'axios'
 import { type RijksmuseumApiResponse, type ArtworkDetails } from '@/types/types'
-
-const API_ENDPOINT = import.meta.env.VITE_APP_API_URL
-const API_KEY = import.meta.env.VITE_APP_API_KEY
+import { VITE_APP_API_KEY, VITE_APP_API_URL } from '../../env'
 
 export class RijksmuseumService {
   public static async searchArtworks(query: string): Promise<RijksmuseumApiResponse> {
     try {
-      const response: AxiosResponse<RijksmuseumApiResponse> = await axios.get(`${API_ENDPOINT}`, {
-        params: {
-          key: API_KEY,
-          format: 'json',
-          q: query,
-          imgonly: true
+      const response: AxiosResponse<RijksmuseumApiResponse> = await axios.get(
+        `${VITE_APP_API_URL}`,
+        {
+          params: {
+            key: VITE_APP_API_KEY,
+            format: 'json',
+            q: query,
+            imgonly: true
+          }
         }
-      })
+      )
       return response.data
     } catch (error) {
       console.error(error)
@@ -26,10 +26,10 @@ export class RijksmuseumService {
   public static async fetchArtworkDetails(objectNumber: string): Promise<ArtworkDetails> {
     try {
       const response: AxiosResponse<ArtworkDetails> = await axios.get(
-        `${API_ENDPOINT}/${objectNumber}`,
+        `${VITE_APP_API_URL}/${objectNumber}`,
         {
           params: {
-            key: API_KEY,
+            key: VITE_APP_API_KEY,
             format: 'json'
           }
         }
