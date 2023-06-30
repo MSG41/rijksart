@@ -30,8 +30,8 @@ export default {
     const loading = ref(true)
 
     onMounted(async () => {
-      const objectNumber = route.params.objectNumber.toString()
-      if (objectNumber === props.artwork.objectNumber) {
+      const objectNumber = route.params.objectNumber
+      if (objectNumber && typeof objectNumber === 'string') {
         artworkDetails.value = await RijksmuseumService.fetchArtworkDetails(objectNumber)
         loading.value = false
       }
@@ -50,7 +50,7 @@ export default {
   width: 100%;
   max-width: 300px;
   border: 1px solid #ccc;
-  margin: 10px auto; 
+  margin: 10px auto;
   padding: 10px;
   box-sizing: border-box;
   text-align: center;
@@ -63,8 +63,8 @@ export default {
 }
 
 .image-container {
-  max-height: 200px; 
-  overflow: hidden; 
+  max-height: 200px;
+  overflow: hidden;
 }
 
 .artwork-image {

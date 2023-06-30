@@ -1,6 +1,8 @@
 <template>
   <div v-if="loading">Loading...</div>
   <div v-else class="artwork-detail">
+    <button @click="goBack" class="back-button">Go Back</button>
+
     <img
       v-if="artworkDetails && artworkDetails.artObject.webImage"
       class="artwork-detail__image"
@@ -78,7 +80,8 @@
 
 <script lang="ts">
 import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import { RijksmuseumService } from '@/services/RijksmuseumService'
 import { type ArtworkDetails } from '@/types/types'
 
@@ -87,6 +90,8 @@ export default {
     const route = useRoute()
     const artworkDetails = ref<ArtworkDetails | null>(null)
     const loading = ref(true)
+    const router = useRouter()
+    const store = useRijksmuseumStore()
 
     onMounted(async () => {
       const objectNumber = route.params.objectNumber
@@ -95,10 +100,13 @@ export default {
         loading.value = false
       }
     })
-
+    const goBack = () => {
+      router.push({ name: 'home', query: { q: store.searchQuery } })
+    }
     return {
       artworkDetails,
-      loading
+      loading,
+      goBack
     }
   }
 }
@@ -153,6 +161,21 @@ export default {
   flex-wrap: wrap;
   align-items: center;
   margin-right: 20px;
+}
+
+.back-button {
+  background-color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-bottom: 20px;
+  align-self: flex-start;
+}
+
+.back-button:hover {
+  background-color: #f5f5f5;
 }
 
 @media (max-width: 480px) {
