@@ -1,11 +1,14 @@
 <template>
-  <div class="search-container">
-    <input
-      class="search-input"
-      type="text"
-      v-model="searchQuery"
-      placeholder="Search for art..."
-    />
+  <div>
+    <div class="search-container">
+      <input
+        class="search-input"
+        type="text"
+        v-model="searchQuery"
+        placeholder="Search for art..."
+      />
+    </div>
+    <div class="search-placeholder" v-if="!searchQuery"></div>
   </div>
 </template>
 
@@ -32,18 +35,22 @@ export default {
 
 <style scoped>
 .search-container {
-  width: 100%;
-  display: flex;
-  margin-top: 90px;
-  justify-content: center;
-  margin-bottom: 20px;
+  position: fixed;
+  top: 80px;
+  z-index: 3;
+  margin: auto;
+  height: 40px;
 }
 
 .search-input {
-  width: 50%;
+  width: 100%;
   padding: 10px;
   font-size: 16px;
   border-radius: 5px;
   border: 1px solid #ccc;
+}
+
+.search-placeholder {
+  height: 40px;
 }
 </style>
