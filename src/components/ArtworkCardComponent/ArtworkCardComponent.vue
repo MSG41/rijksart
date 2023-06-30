@@ -1,20 +1,45 @@
 <template>
-  <div class="artwork-card">
+  <router-link :to="`/artwork/${artwork.objectNumber}`" class="artwork-card">
     <h2>{{ artwork.title }}</h2>
     <div v-if="artwork.hasImage && artwork.webImage.url">
       <img class="artwork-image" :src="artwork.webImage.url" :alt="artwork.title" />
     </div>
-    <p>{{ artwork.ma }}</p>
     <p>{{ artwork.longTitle }}</p>
-  </div>
+  </router-link>
 </template>
 
 <script lang="ts">
+import { useRoute, RouterLink } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { RijksmuseumService } from '@/services/RijksmuseumService'
+import { type ArtworkDetails } from '@/types/types'
+
 export default {
+  components: {
+    RouterLink
+  },
   props: {
     artwork: {
       type: Object,
       required: true
+    }
+  },
+  setup(props) {
+    const route = useRoute()
+    const artworkDetails = ref<ArtworkDetails | null>(null)
+    const loading = ref(true)
+
+    onMounted(async () => {
+      const objectNumber = route.params.objectNumber.toString()
+      if (objectNumber === props.artwork.objectNumber) {
+        artworkDetails.value = await RijksmuseumService.fetchArtworkDetails(objectNumber)
+        loading.value = false
+      }
+    })
+
+    return {
+      artworkDetails,
+      loading
     }
   }
 }
