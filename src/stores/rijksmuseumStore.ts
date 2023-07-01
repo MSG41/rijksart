@@ -6,35 +6,52 @@ export const useRijksmuseumStore = defineStore({
   id: 'rijksmuseum',
 
   state: () => ({
-    artworks: {} as Record<string, ArtworkDetails>, // Add index signature
-    loading: false,
-    page: 1, // Add page state
-    pageSize: 10, // Add pageSize state
-    reachedEnd: false, // Add reachedEnd state
+    artworks: {} as Record<string, ArtworkDetails>,
+    artworkCache: {} as Record<string, ArtworkDetails>,
+    page: 1,
+    pageSize: 10,
+    reachedEnd: false,
+    loading: false, // Add this line
     searchQuery: localStorage.getItem('searchQuery') || ''
   }),
 
   actions: {
+    resetPagination() {
+      this.page = 1
+      this.reachedEnd = false
+    },
+
     async searchArtworks(query: string) {
-      this.loading = true
+      this.loading = true // Add this line
+
+      if (query.trim() === '') {
+        this.artworks = {}
+        this.loading = false // And this line
+        return
+      }
+
       try {
         const data = await RijksmuseumService.searchArtworks(query, this.page, this.pageSize)
+        const newArtworks = {} as Record<string, ArtworkDetails>
+
         data.artObjects.forEach((artwork) => {
           if (artwork.hasImage && artwork.webImage.url && artwork.showImage) {
-            this.artworks[artwork.objectNumber] = artwork // Store artwork using `objectNumber` as key
+            newArtworks[artwork.objectNumber] = artwork
           }
         })
-        localStorage.setItem('searchQuery', query) // Persist the search query
-        // Increase page for the next loading
+
+        this.artworks = { ...this.artworks, ...newArtworks }
+        this.artworkCache = newArtworks
+        localStorage.setItem('searchQuery', query)
         this.page += 1
-        // Check if we have less items than requested, means we've reached the end
         if (data.artObjects.length < this.pageSize) {
           this.reachedEnd = true
         }
       } catch (error) {
         console.error(error)
+        this.artworks = { ...this.artworkCache }
       } finally {
-        this.loading = false
+        this.loading = false // And finally this line
       }
     },
 

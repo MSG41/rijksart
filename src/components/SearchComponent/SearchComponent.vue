@@ -31,6 +31,7 @@ export default {
 
       if (query !== store.searchQuery) {
         store.searchQuery = query // Update the store with the value from the ref
+        store.resetPagination() // Reset pagination
         store.searchArtworks(query) // Trigger the search in the store
 
         // Push the new searchQuery to the URL
