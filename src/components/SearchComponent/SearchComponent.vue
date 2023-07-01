@@ -30,12 +30,12 @@ export default {
       const query = searchQuery.value.trim()
 
       if (query !== store.searchQuery) {
-        store.searchQuery = query // Update the store with the value from the ref
-        store.resetPagination() // Reset pagination
-        store.searchArtworks(query) // Trigger the search in the store
+        store.updateSearchQuery(query) // Update the search query in the store
+        store.resetPagination() // Reset pagination before performing the search
+        store.searchArtworks() // Trigger the search in the store
 
         // Push the new searchQuery to the URL
-        router.push({ name: 'home', query: { q: query } })
+        router.replace({ name: 'home', query: { q: query } })
       }
     }, 500) // Delay of 500ms
 
@@ -61,7 +61,14 @@ export default {
       if (query && searchQuery.value !== query) {
         searchQuery.value = query
         store.searchQuery = query
-        store.searchArtworks(query)
+      }
+    })
+
+    // Reset pagination and searchQuery when navigating back from detail page
+    router.afterEach((to, from) => {
+      if (to.name === 'home' && from.name === 'detail') {
+        store.resetPagination()
+        searchQuery.value = store.searchQuery
       }
     })
 
@@ -69,6 +76,28 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.search-container {
+  position: fixed;
+  top: 80px;
+  z-index: 3;
+  margin: auto;
+  height: 40px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.search-placeholder {
+  height: 40px;
+}
+</style>
 
 <style scoped>
 .search-container {
