@@ -129,8 +129,13 @@ export interface ArtworkDetails {
   showImage: boolean
   webImage: WebImage
   longTitle: string
-  principalMaker: string
+  principalOrFirstMaker: string
   materials: string[]
   techniques: string[]
   artObject: ArtObject
+}
+
+export interface Suggestion {
+  title: string
+  artist: string
 }

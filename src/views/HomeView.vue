@@ -3,15 +3,19 @@
     <div class="search-wrapper">
       <SearchComponent />
     </div>
-    <div v-if="store.loading" class="loading">Loading...</div>
-    <div v-else class="artwork-grid">
+    <div class="artwork-grid">
       <ArtworkCardComponent
         v-for="artwork in Object.values(store.artworks)"
         :key="artwork.objectNumber"
         :artwork="artwork"
+        :loading="store.loading"
       />
       <!-- When this element is visible in the viewport, fetch more artworks -->
-      <div v-intersect="loadMoreArtworks" v-if="!store.reachedEnd" class="fetch-more"></div>
+      <div
+        v-intersect="loadMoreArtworks"
+        v-if="!store.reachedEnd && !store.loading"
+        class="fetch-more"
+      ></div>
     </div>
   </div>
 </template>
@@ -21,6 +25,7 @@ import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import SearchComponent from '@/components/SearchComponent/SearchComponent.vue'
 import ArtworkCardComponent from '@/components/ArtworkCardComponent/ArtworkCardComponent.vue'
 import { onMounted } from 'vue'
+import { debounce } from 'lodash'
 
 export default {
   components: {
@@ -36,24 +41,23 @@ export default {
           { threshold: 1.0 }
         )
         observer.observe(el)
+        el.__vueIntersectionObserver__ = observer // Store the observer instance on the element
       },
-      unmounted: (el, binding) => {
-        const observer = new IntersectionObserver(
-          ([entry]) => entry.isIntersecting && binding.value(),
-          { threshold: 1.0 }
-        )
-        observer.unobserve(el)
+      unmounted: (el) => {
+        if (el.__vueIntersectionObserver__) {
+          el.__vueIntersectionObserver__.disconnect() // Disconnect the observer when the element is unmounted
+        }
       }
     }
   },
   setup() {
     const store = useRijksmuseumStore()
 
-    function loadMoreArtworks() {
-      if (!store.loading) {
+    const loadMoreArtworks = debounce(() => {
+      if (!store.reachedEnd && !store.loading) {
         store.searchArtworks(store.searchQuery)
       }
-    }
+    }, 500)
 
     onMounted(() => {
       store.initializeStore()

@@ -1,18 +1,20 @@
 <template>
   <router-link :to="`/artwork/${artwork.objectNumber}`" class="artwork-card">
-    <h2>{{ artwork.title }}</h2>
-    <div v-if="artwork.hasImage && artwork.webImage.url" class="image-container">
-      <img class="artwork-image" :src="artwork.webImage.url" :alt="artwork.title" />
+    <div v-if="loading" class="loading">
+      <div class="spinner"></div>
     </div>
-    <p>{{ artwork.longTitle }}</p>
+    <div v-else>
+      <h2>{{ artwork.title }}</h2>
+      <div v-if="artwork.hasImage && artwork.webImage.url" class="image-container">
+        <img class="artwork-image" :src="artwork.webImage.url" :alt="artwork.title" />
+      </div>
+      <p>{{ artwork.longTitle }}</p>
+    </div>
   </router-link>
 </template>
 
 <script lang="ts">
-import { useRoute, RouterLink } from 'vue-router'
-import { ref, onMounted } from 'vue'
-import { RijksmuseumService } from '@/services/RijksmuseumService'
-import { type ArtworkDetails } from '@/types/types'
+import { RouterLink } from 'vue-router'
 
 export default {
   components: {
@@ -22,24 +24,10 @@ export default {
     artwork: {
       type: Object,
       required: true
-    }
-  },
-  setup(props) {
-    const route = useRoute()
-    const artworkDetails = ref<ArtworkDetails | null>(null)
-    const loading = ref(true)
-
-    onMounted(async () => {
-      const objectNumber = route.params.objectNumber
-      if (objectNumber && typeof objectNumber === 'string') {
-        artworkDetails.value = await RijksmuseumService.fetchArtworkDetails(objectNumber)
-        loading.value = false
-      }
-    })
-
-    return {
-      artworkDetails,
-      loading
+    },
+    loading: {
+      type: Boolean,
+      required: true
     }
   }
 }
@@ -47,6 +35,7 @@ export default {
 
 <style scoped>
 .artwork-card {
+  position: relative;
   width: 100%;
   max-width: 300px;
   border: 1px solid #ccc;
@@ -71,5 +60,35 @@ export default {
   width: 100%;
   height: auto;
   margin-bottom: 10px;
+}
+
+.loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.spinner {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
