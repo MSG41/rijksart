@@ -1,85 +1,87 @@
 <template>
-  <div v-if="loading">Loading...</div>
-  <div v-else class="artwork-detail">
-    <button @click="goBack" class="back-button">Go Back</button>
+  <div>
+    <div v-if="loading">Loading...</div>
+    <div v-else class="artwork-detail">
+      <button @click="goBack" class="back-button">Go Back</button>
 
-    <img
-      v-if="artworkDetails && artworkDetails.artObject.webImage"
-      class="artwork-detail__image"
-      :src="artworkDetails.artObject.webImage.url"
-      :alt="artworkDetails.artObject.title"
-    />
-    <h2 v-if="artworkDetails" class="artwork-detail__description">
-      {{ artworkDetails.artObject.longTitle }}
-    </h2>
+      <img
+        v-if="artworkDetails && artworkDetails.artObject.webImage"
+        class="artwork-detail__image"
+        :src="artworkDetails.artObject.webImage.url"
+        :alt="artworkDetails.artObject.title"
+      />
+      <h2 v-if="artworkDetails" class="artwork-detail__description">
+        {{ artworkDetails.artObject.longTitle }}
+      </h2>
 
-    <!-- Additional details -->
-    <div v-if="artworkDetails" class="artwork-detail__additional">
-      <div v-if="artworkDetails.artObject.principalMaker" class="artwork-detail__info">
-        <span class="artwork-detail__info-label">Principal Maker:</span>
-        {{ artworkDetails.artObject.principalMaker }}
-      </div>
-      <div v-if="artworkDetails.artObject.dating?.presentingDate" class="artwork-detail__info">
-        <span class="artwork-detail__info-label">Dating:</span>
-        {{ artworkDetails.artObject.dating.presentingDate }}
-      </div>
-      <div v-if="artworkDetails.artObject.techniques.length" class="artwork-detail__info">
-        <span class="artwork-detail__info-label">Techniques:</span>
-        {{ artworkDetails.artObject.techniques.join(', ') }}
-      </div>
-      <div v-if="artworkDetails.artObject.materials.length" class="artwork-detail__info">
-        <span class="artwork-detail__info-label">Materials:</span>
-        {{ artworkDetails.artObject.materials.join(', ') }}
-      </div>
-
-      <div v-if="artworkDetails.artObject.dimensions.length" class="artwork-detail__info">
-        <span class="artwork-detail__info-label">Dimensions:</span>
-        <div v-for="dimension in artworkDetails.artObject.dimensions" :key="dimension.type">
-          <span>{{ dimension.type }}:</span>
-          <span>{{ dimension.value }} {{ dimension.unit }}</span>
-          <span>({{ dimension.part }})</span>
+      <!-- Additional details -->
+      <div v-if="artworkDetails" class="artwork-detail__additional">
+        <div v-if="artworkDetails.artObject.principalMaker" class="artwork-detail__info">
+          <span class="artwork-detail__info-label">Principal Maker:</span>
+          {{ artworkDetails.artObject.principalMaker }}
         </div>
-      </div>
-      <div v-if="artworkDetails.artObject.objectCollection.length" class="artwork-detail__info">
-        <span class="artwork-detail__info-label">Object Collection:</span>
-        {{ artworkDetails.artObject.objectCollection.join(', ') }}
-      </div>
-      <div v-if="artworkDetails.artObject.objectTypes.length" class="artwork-detail__info">
-        <span class="artwork-detail__info-label">Object Types:</span>
-        {{ artworkDetails.artObject.objectTypes.join(', ') }}
-      </div>
-      <div v-if="artworkDetails.artObject.makers.length" class="artwork-detail__info">
-        <span class="artwork-detail__info-label">Makers:</span>
-        <div v-for="maker in artworkDetails.artObject.makers" :key="maker.name">
-          <span>{{ maker.name }}</span>
-          <span>({{ maker.occupation.join(', ') }})</span>
+        <div v-if="artworkDetails.artObject.dating?.presentingDate" class="artwork-detail__info">
+          <span class="artwork-detail__info-label">Dating:</span>
+          {{ artworkDetails.artObject.dating.presentingDate }}
         </div>
+        <div v-if="artworkDetails.artObject.techniques.length" class="artwork-detail__info">
+          <span class="artwork-detail__info-label">Techniques:</span>
+          {{ artworkDetails.artObject.techniques.join(', ') }}
+        </div>
+        <div v-if="artworkDetails.artObject.materials.length" class="artwork-detail__info">
+          <span class="artwork-detail__info-label">Materials:</span>
+          {{ artworkDetails.artObject.materials.join(', ') }}
+        </div>
+
+        <div v-if="artworkDetails.artObject.dimensions.length" class="artwork-detail__info">
+          <span class="artwork-detail__info-label">Dimensions:</span>
+          <div v-for="dimension in artworkDetails.artObject.dimensions" :key="dimension.type">
+            <span>{{ dimension.type }}:</span>
+            <span>{{ dimension.value }} {{ dimension.unit }}</span>
+            <span>({{ dimension.part }})</span>
+          </div>
+        </div>
+        <div v-if="artworkDetails.artObject.objectCollection.length" class="artwork-detail__info">
+          <span class="artwork-detail__info-label">Object Collection:</span>
+          {{ artworkDetails.artObject.objectCollection.join(', ') }}
+        </div>
+        <div v-if="artworkDetails.artObject.objectTypes.length" class="artwork-detail__info">
+          <span class="artwork-detail__info-label">Object Types:</span>
+          {{ artworkDetails.artObject.objectTypes.join(', ') }}
+        </div>
+        <div v-if="artworkDetails.artObject.makers.length" class="artwork-detail__info">
+          <span class="artwork-detail__info-label">Makers:</span>
+          <div v-for="maker in artworkDetails.artObject.makers" :key="maker.name">
+            <span>{{ maker.name }}</span>
+            <span>({{ maker.occupation.join(', ') }})</span>
+          </div>
+        </div>
+        <div v-if="artworkDetails.artObject.acquisition.method" class="artwork-detail__info">
+          <span class="artwork-detail__info-label">Acquisition Method:</span>
+          {{ artworkDetails.artObject.acquisition.method }}
+        </div>
+        <div
+          v-if="artworkDetails.artObject.classification.iconClassIdentifier.length"
+          class="artwork-detail__info"
+        >
+          <span class="artwork-detail__info-label">Icon Class Identifier:</span>
+          {{ artworkDetails.artObject.classification.iconClassIdentifier.join(', ') }}
+        </div>
+        <div
+          v-if="artworkDetails.artObject.classification.iconClassDescription.length"
+          class="artwork-detail__info"
+        >
+          <span class="artwork-detail__info-label">Icon Class Description:</span>
+          {{ artworkDetails.artObject.classification.iconClassDescription.join(', ') }}
+        </div>
+        <!-- Add more information here -->
       </div>
-      <div v-if="artworkDetails.artObject.acquisition.method" class="artwork-detail__info">
-        <span class="artwork-detail__info-label">Acquisition Method:</span>
-        {{ artworkDetails.artObject.acquisition.method }}
-      </div>
-      <div
-        v-if="artworkDetails.artObject.classification.iconClassIdentifier.length"
-        class="artwork-detail__info"
-      >
-        <span class="artwork-detail__info-label">Icon Class Identifier:</span>
-        {{ artworkDetails.artObject.classification.iconClassIdentifier.join(', ') }}
-      </div>
-      <div
-        v-if="artworkDetails.artObject.classification.iconClassDescription.length"
-        class="artwork-detail__info"
-      >
-        <span class="artwork-detail__info-label">Icon Class Description:</span>
-        {{ artworkDetails.artObject.classification.iconClassDescription.join(', ') }}
-      </div>
-      <!-- Add more information here -->
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import { RijksmuseumService } from '@/services/RijksmuseumService'
@@ -92,17 +94,36 @@ export default {
     const loading = ref(true)
     const router = useRouter()
     const store = useRijksmuseumStore()
+    const scrollPosition = ref(0)
 
     onMounted(async () => {
       const objectNumber = route.params.objectNumber
       if (typeof objectNumber === 'string') {
-        artworkDetails.value = await RijksmuseumService.fetchArtworkDetails(objectNumber)
-        loading.value = false
+        try {
+          scrollPosition.value = window.pageYOffset // Store the scroll position
+          artworkDetails.value = await RijksmuseumService.fetchArtworkDetails(objectNumber)
+          loading.value = false
+        } catch (error: any) {
+          console.error(error)
+          loading.value = false
+          artworkDetails.value = null // Reset artworkDetails on error
+        }
       }
     })
+
     const goBack = () => {
-      router.push({ name: 'home', query: { q: store.searchQuery } })
-    }
+  loading.value = true
+  store.storeScrollPosition(route.fullPath, scrollPosition.value) // Store the scroll position in the store
+  router.back() // Go back one step in the browser history
+}
+
+
+    onBeforeUnmount(() => {
+      if (route.name === 'home') {
+        store.storeScrollPosition(route.fullPath, scrollPosition.value) // Store the scroll position in the store
+      }
+    })
+
     return {
       artworkDetails,
       loading,
@@ -111,7 +132,6 @@ export default {
   }
 }
 </script>
-
 <style scoped>
 .artwork-detail {
   display: flex;

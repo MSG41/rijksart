@@ -11,8 +11,9 @@ export const useRijksmuseumStore = defineStore({
     page: 1,
     pageSize: 10,
     reachedEnd: false,
-    loading: false, // Add this line
-    searchQuery: localStorage.getItem('searchQuery') || ''
+    loading: false,
+    searchQuery: localStorage.getItem('searchQuery') || '',
+    scrollPositions: {} as Record<string, number>
   }),
 
   actions: {
@@ -21,16 +22,20 @@ export const useRijksmuseumStore = defineStore({
       this.reachedEnd = false
     },
 
-    async searchArtworks(query: string) {
-      this.loading = true // Add this line
+    updateSearchQuery(query: string) {
+      this.searchQuery = query.trim()
+    },
 
-      if (query.trim() === '') {
+    async searchArtworks() {
+      const query = this.searchQuery
+
+      if (query === '') {
         this.artworks = {}
-        this.loading = false // And this line
         return
       }
 
       try {
+        this.loading = true
         const data = await RijksmuseumService.searchArtworks(query, this.page, this.pageSize)
         const newArtworks = {} as Record<string, ArtworkDetails>
 
@@ -41,8 +46,7 @@ export const useRijksmuseumStore = defineStore({
         })
 
         this.artworks = { ...this.artworks, ...newArtworks }
-        this.artworkCache = newArtworks
-        localStorage.setItem('searchQuery', query)
+        this.artworkCache = { ...this.artworkCache, ...newArtworks }
         this.page += 1
         if (data.artObjects.length < this.pageSize) {
           this.reachedEnd = true
@@ -51,14 +55,22 @@ export const useRijksmuseumStore = defineStore({
         console.error(error)
         this.artworks = { ...this.artworkCache }
       } finally {
-        this.loading = false // And finally this line
+        this.loading = false
       }
     },
 
     async initializeStore() {
       if (this.searchQuery) {
-        await this.searchArtworks(this.searchQuery)
+        await this.searchArtworks()
       }
+    },
+
+    storeScrollPosition(routePath: string, scrollPosition: number) {
+      this.scrollPositions[routePath] = scrollPosition
+    },
+
+    retrieveScrollPosition(routePath: string) {
+      return this.scrollPositions[routePath] || 0
     }
   }
 })
