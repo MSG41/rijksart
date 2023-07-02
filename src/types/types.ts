@@ -115,10 +115,16 @@ export interface Label {
   date: string | null
 }
 
+export type Facet = {
+  name: string
+  facets: any[]
+}
+
 export interface RijksmuseumApiResponse {
   elapsedMilliseconds: number
   count: number
   artObjects: ArtworkDetails[]
+  facets: Facet[]
 }
 
 export interface ArtworkDetails {
