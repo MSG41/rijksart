@@ -13,11 +13,12 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://www.rijksmuseum.nl',
+        target: VITE_APP_API_URL,
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
         headers: {
-          'X-API-Key': VITE_APP_API_KEY
+          ...(VITE_APP_API_KEY && { 'X-API-Key': VITE_APP_API_KEY }),
+          Referer: 'https://www.rijksmuseum.nl'
         }
       }
     }
