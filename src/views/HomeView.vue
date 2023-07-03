@@ -33,8 +33,8 @@ export default {
     const store = useRijksmuseumStore()
     const loadMoreElement = ref<HTMLElement | null>(null)
     const artworkGrid = ref<HTMLElement | null>(null)
-    const lastScrollPosition = ref(0) // Store the last scroll position
-    let previousScrollPosition = 0 // Track previous scroll position
+    const lastScrollPosition = ref(0)
+    let previousScrollPosition = 0
 
     onMounted(() => {
       window.addEventListener('scroll', handleScroll)
@@ -45,7 +45,7 @@ export default {
 
     onBeforeUnmount(() => {
       window.removeEventListener('scroll', handleScroll)
-      store.storeScrollPosition('home', lastScrollPosition.value) // Save the last scroll position
+      store.storeScrollPosition('home', lastScrollPosition.value)
     })
 
     const handleScroll = debounce(() => {
@@ -64,10 +64,9 @@ export default {
     }
 
     const loadMoreArtworks = () => {
-      lastScrollPosition.value = window.scrollY // Store the current scroll position
-      previousScrollPosition = window.scrollY // Track previous scroll position
+      lastScrollPosition.value = window.scrollY
+      previousScrollPosition = window.scrollY
       store.loadMoreArtworks().then(() => {
-        // Scroll to previous position after updating artworks
         nextTick(() => {
           window.scrollTo(0, previousScrollPosition)
         })

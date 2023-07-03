@@ -17,19 +17,19 @@ import { onMounted, onUnmounted } from 'vue'
 const store = useRijksmuseumStore()
 
 const scrollHandler = () => {
-  store.scrollHandler() // Call the scrollHandler method in the store
+  store.scrollHandler()
 }
 
 onMounted(() => {
   window.addEventListener('scroll', scrollHandler)
-  store.initialize() // Initialize the store state from localStorage
-  window.scrollTo(0, store.retrieveScrollPosition('home')) // Restore the scroll position
+  store.initialize()
+  window.scrollTo(0, store.retrieveScrollPosition('home'))
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', scrollHandler)
-  store.storeScrollPosition('home', window.scrollY) // Save the scroll position
-  store.saveStateToLocalStorage() // Save the store state to localStorage
+  store.storeScrollPosition('home', window.scrollY)
+  store.saveStateToLocalStorage()
 })
 </script>
 
