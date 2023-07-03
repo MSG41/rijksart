@@ -8,31 +8,32 @@
         placeholder="Search for art..."
         @input="updateSearchQuery"
       />
+
       <div class="dropdowns-container">
         <v-select
           class="dd1"
-          :options="materials"
+          :options="materialsOptions"
           v-model="store.selectedMaterial"
           placeholder="Select material..."
-          label="value"
+          label="label"
           @input="updateSelectedMaterial"
           filterable
         />
         <v-select
           class="dd1"
-          :options="techniques"
+          :options="techniquesOptions"
           v-model="store.selectedTechnique"
           placeholder="Select technique..."
-          label="value"
+          label="label"
           @input="updateSelectedTechnique"
           filterable
         />
         <v-select
           class="dd1"
-          :options="types"
+          :options="typesOptions"
           v-model="store.selectedType"
           placeholder="Select type..."
-          label="value"
+          label="label"
           @input="updateSelectedType"
           filterable
         />
@@ -60,7 +61,7 @@ export default {
     const updateSearchQuery = debounce(function (event: Event) {
       const query = (event.target as HTMLInputElement).value
       store.updateSearchQuery(query.trim())
-    }, 50) // Increased debounce time to 500 milliseconds
+    }, 300) // Increased debounce time to 300 milliseconds
 
     const updateSelectedMaterial = debounce(function (value: string | null) {
       store.updateSelectedMaterial(value)
@@ -80,23 +81,13 @@ export default {
 
     const typesOptions = ref([...types.map((type) => type.value)])
 
-    watch(
-      () => [
-        store.searchQuery,
-        store.selectedMaterial,
-        store.selectedTechnique,
-        store.selectedType
-      ],
-      () => {
-        store.searchArtworks(1, 10)
-      }
-    )
+    // ...
 
     return {
       store,
-      materials: materialsOptions,
-      techniques: techniquesOptions,
-      types: typesOptions,
+      materialsOptions,
+      techniquesOptions,
+      typesOptions,
       updateSearchQuery,
       updateSelectedMaterial,
       updateSelectedTechnique,

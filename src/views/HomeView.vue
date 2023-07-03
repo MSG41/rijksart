@@ -1,25 +1,23 @@
 <template>
-  <div>
-    <div class="search-wrapper">
-      <SearchComponent />
-    </div>
+  <div class="search-wrapper">
+    <SearchComponent @search="handleSearch" />
+  </div>
 
-    <div class="artwork-grid">
-      <ArtworkCardComponent
-        v-for="artwork in filteredArtworks"
-        :key="artwork.objectNumber"
-        :artwork="artwork"
-        :loading="loading"
-        :scroll-position="retrieveScrollPosition(artwork.objectNumber)"
-        @update-scroll-position="storeScrollPosition(artwork.objectNumber, $event)"
-      />
-      <div class="fetch-more" ref="loadMoreElement"></div>
-    </div>
+  <div class="artwork-grid">
+    <ArtworkCardComponent
+      v-for="artwork in store.artworks"
+      :key="artwork.objectNumber"
+      :artwork="artwork"
+      :loading="store.loading"
+      :scroll-position="store.retrieveScrollPosition(artwork.objectNumber)"
+      @update-scroll-position="store.storeScrollPosition(artwork.objectNumber, $event)"
+    />
+    <div class="fetch-more" ref="loadMoreElement"></div>
   </div>
 </template>
 
 <script lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import SearchComponent from '@/components/SearchComponent/SearchComponent.vue'
 import ArtworkCardComponent from '@/components/ArtworkCardComponent/ArtworkCardComponent.vue'
@@ -32,43 +30,61 @@ export default {
   },
   setup() {
     const store = useRijksmuseumStore()
-
-    const reachedEnd = ref(false)
-    const loadMoreElement = ref(null)
-
-    const loadMoreArtworks = debounce(() => {
-      if (!reachedEnd.value && !store.loading) {
-        const page = Math.ceil(store.artworks.length / 10) + 1
-        const pageSize = 10
-        store.searchArtworks(page, pageSize)
-      }
-    }, 500)
-
-    const handleScroll = debounce(() => {
-      if (window.innerHeight + window.scrollY >= document.documentElement.offsetHeight) {
-        loadMoreArtworks()
-      }
-    }, 200)
+    const loadMoreElement = ref<HTMLElement | null>(null)
+    const lastScrollPosition = ref(0) // Store the last scroll position
+    let previousScrollPosition = 0 // Track previous scroll position
 
     onMounted(() => {
       window.addEventListener('scroll', handleScroll)
+      loadMoreElement.value = document.querySelector('.fetch-more')
     })
 
     onBeforeUnmount(() => {
       window.removeEventListener('scroll', handleScroll)
-      store.storeScrollPosition('home', window.scrollY)
+      store.storeScrollPosition('home', lastScrollPosition.value) // Save the last scroll position
     })
 
-    const filteredArtworks = computed(() => store.artworks)
-    const loading = computed(() => store.loading)
+    const handleScroll = debounce(() => {
+      if (
+        window.innerHeight + window.scrollY >= document.documentElement.offsetHeight &&
+        !store.loading &&
+        !store.reachedEnd
+      ) {
+        loadMoreArtworks()
+      }
+    }, 200)
+
+    const handleSearch = (query: string) => {
+      store.updateSearchQuery(query)
+      store.searchArtworks()
+    }
+
+    const loadMoreArtworks = () => {
+      lastScrollPosition.value = window.scrollY // Store the current scroll position
+      previousScrollPosition = window.scrollY // Track previous scroll position
+      store.loadMoreArtworks().then(() => {
+        // Scroll to previous position after updating artworks
+        window.scrollTo(0, previousScrollPosition)
+      })
+    }
+
+    watch(
+      () => [
+        store.searchQuery,
+        store.selectedMaterial,
+        store.selectedTechnique,
+        store.selectedType
+      ],
+      () => {
+        store.searchArtworks()
+      }
+    )
 
     return {
-      filteredArtworks,
-      loading,
+      store,
       loadMoreElement,
-      reachedEnd,
-      retrieveScrollPosition: store.retrieveScrollPosition,
-      storeScrollPosition: store.storeScrollPosition
+      handleSearch,
+      loadMoreArtworks
     }
   }
 }
@@ -86,10 +102,11 @@ export default {
 
 .search-wrapper {
   position: sticky;
-  display: flex;
+  top: 100px;
+  left: 20px;
   z-index: 3;
-  width: fit-content;
-  max-width: fit-content;
+  width: 100%;
+  max-width: 600px;
   padding: 0 10px;
   box-sizing: border-box;
 }
@@ -105,7 +122,7 @@ export default {
 }
 
 .fetch-more {
-  height: 100px; /* Change the height as needed */
+  height: 100px;
 }
 
 @media (max-width: 660px) {
@@ -113,7 +130,7 @@ export default {
     position: relative;
     top: initial;
     width: 100%;
-    margin-top: 10px;
+    margin-top: 130px;
     padding: 0;
     box-sizing: border-box;
   }
@@ -121,7 +138,6 @@ export default {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin-top: 220px;
   }
 }
 </style>
