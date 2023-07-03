@@ -23,7 +23,9 @@
     "pinia": "^2.1.3",
     "vue": "^3.3.4",
     "vue-intersection": "^2.0.1",
-    "vue-router": "^4.2.2"
+    "vue-router": "^4.2.2",
+    "vue-select": "^4.0.0-beta.6",
+    "vue3-select": "^0.0.8"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",
@@ -31,6 +33,7 @@
     "@types/jsdom": "^21.1.1",
     "@types/lodash": "^4.14.195",
     "@types/node": "^18.16.17",
+    "@types/vue-select": "^3.16.2",
     "@vitejs/plugin-vue": "^4.2.3",
     "@vue/eslint-config-prettier": "^7.1.0",
     "@vue/eslint-config-typescript": "^11.0.3",
@@ -43,8 +46,10 @@
     "http-proxy-middleware": "^2.0.6",
     "jsdom": "^22.1.0",
     "npm-run-all": "^1.7.0",
+    "postcss-import": "^15.1.0",
     "prettier": "^2.8.8",
     "start-server-and-test": "^2.0.0",
+    "ts-node": "^10.9.1",
     "typescript": "~5.0.4",
     "vite": "^4.3.9",
     "vitest": "^0.32.0",

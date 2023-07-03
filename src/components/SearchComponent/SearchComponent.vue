@@ -4,119 +4,163 @@
       <input
         class="search-input"
         type="text"
-        v-model="searchQuery"
+        v-model="store.searchQuery"
         placeholder="Search for art..."
+        @input="updateSearchQuery"
       />
+      <div class="dropdowns-container">
+        <v-select
+          class="dd1"
+          :options="materials"
+          v-model="store.selectedMaterial"
+          placeholder="Select material..."
+          label="value"
+          @input="updateSelectedMaterial"
+          filterable
+        />
+        <v-select
+          class="dd1"
+          :options="techniques"
+          v-model="store.selectedTechnique"
+          placeholder="Select technique..."
+          label="value"
+          @input="updateSelectedTechnique"
+          filterable
+        />
+        <v-select
+          class="dd1"
+          :options="types"
+          v-model="store.selectedType"
+          placeholder="Select type..."
+          label="value"
+          @input="updateSelectedType"
+          filterable
+        />
+      </div>
     </div>
-    <div class="search-placeholder" v-if="!searchQuery"></div>
+    <div class="search-placeholder" v-if="!store.searchQuery"></div>
   </div>
 </template>
 
 <script lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, watchEffect } from 'vue'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
-import { useRoute, useRouter } from 'vue-router'
-import { debounce } from 'lodash'
+import materials from '@/data/material.json'
+import techniques from '@/data/technique.json'
+import types from '@/data/type.json'
+import 'vue-select/dist/vue-select.css'
+import vSelect from 'vue-select'
+import debounce from 'lodash/debounce'
 
 export default {
+  components: { vSelect },
   setup() {
     const store = useRijksmuseumStore()
-    const route = useRoute()
-    const router = useRouter()
-    const searchQuery = ref(store.searchQuery) // Use a ref instead of a reactive object
 
-    // Debounce the search function
-    const debouncedSearch = debounce(() => {
-      const query = searchQuery.value.trim()
+    const updateSearchQuery = debounce(function (event: Event) {
+      const query = (event.target as HTMLInputElement).value
+      store.updateSearchQuery(query.trim())
+    }, 50) // Increased debounce time to 500 milliseconds
 
-      if (query !== store.searchQuery) {
-        store.updateSearchQuery(query) // Update the search query in the store
-        store.resetPagination() // Reset pagination before performing the search
-        store.searchArtworks() // Trigger the search in the store
+    const updateSelectedMaterial = debounce(function (value: string | null) {
+      store.updateSelectedMaterial(value)
+    }, 200)
 
-        // Push the new searchQuery to the URL
-        router.replace({ name: 'home', query: { q: query } })
-      }
-    }, 500) // Delay of 500ms
+    const updateSelectedTechnique = debounce(function (value: string | null) {
+      store.updateSelectedTechnique(value)
+    }, 200)
 
-    // Watch for changes to the search query
-    watch(searchQuery, debouncedSearch)
+    const updateSelectedType = debounce(function (value: string | null) {
+      store.updateSelectedType(value)
+    }, 200)
 
-    // Watch for changes in the route's query string
+    const materialsOptions = ref([...materials.map((material) => material.value)])
+
+    const techniquesOptions = ref([...techniques.map((technique) => technique.value)])
+
+    const typesOptions = ref([...types.map((type) => type.value)])
+
     watch(
-      () => route.query.q,
-      (newValue) => {
-        const query = newValue as string
-
-        if (searchQuery.value !== query) {
-          searchQuery.value = query
-        }
+      () => [
+        store.searchQuery,
+        store.selectedMaterial,
+        store.selectedTechnique,
+        store.selectedType
+      ],
+      () => {
+        store.searchArtworks(1, 10)
       }
     )
 
-    // Perform initial search based on URL query
-    onMounted(() => {
-      const query = route.query.q as string
-
-      if (query && searchQuery.value !== query) {
-        searchQuery.value = query
-        store.searchQuery = query
-      }
-    })
-
-    // Reset pagination and searchQuery when navigating back from detail page
-    router.afterEach((to, from) => {
-      if (to.name === 'home' && from.name === 'detail') {
-        store.resetPagination()
-        searchQuery.value = store.searchQuery
-      }
-    })
-
-    return { searchQuery }
+    return {
+      store,
+      materials: materialsOptions,
+      techniques: techniquesOptions,
+      types: typesOptions,
+      updateSearchQuery,
+      updateSelectedMaterial,
+      updateSelectedTechnique,
+      updateSelectedType
+    }
   }
 }
 </script>
 
 <style scoped>
 .search-container {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
   position: fixed;
   top: 80px;
   z-index: 3;
+  width: 18rem;
   margin: auto;
-  height: 40px;
+  gap: 10px;
+}
+
+.dropdowns-container {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex: 1;
+  width: fit-content;
+  background-color: white;
+  border-radius: 10px;
+}
+
+.dd1 {
+  width: 15rem;
 }
 
 .search-input {
-  width: 100%;
+  flex: 1;
   padding: 10px;
   font-size: 16px;
   border-radius: 5px;
   border: 1px solid #ccc;
+  height: 2rem;
 }
 
 .search-placeholder {
   height: 40px;
 }
-</style>
 
-<style scoped>
-.search-container {
-  position: fixed;
-  top: 80px;
-  z-index: 3;
-  margin: auto;
-  height: 40px;
-}
+@media screen and (max-width: 954px) {
+  .search-container {
+    flex-direction: column;
+    align-items: stretch;
+    top: 80px;
+    padding: 10px;
+  }
 
-.search-input {
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
+  .search-input {
+    margin-bottom: 10px;
+  }
 
-.search-placeholder {
-  height: 40px;
+  .dropdowns-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 </style>
