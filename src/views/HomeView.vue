@@ -1,9 +1,10 @@
 <template>
   <div class="search-wrapper">
     <SearchComponent @search="handleSearch" />
+    <h4 v-if="store.artworks.length === 0">No art found.</h4>
   </div>
 
-  <div class="artwork-grid">
+  <div class="artwork-grid" ref="artworkGrid">
     <ArtworkCardComponent
       v-for="artwork in store.artworks"
       :key="artwork.objectNumber"
@@ -17,7 +18,7 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import SearchComponent from '@/components/SearchComponent/SearchComponent.vue'
 import ArtworkCardComponent from '@/components/ArtworkCardComponent/ArtworkCardComponent.vue'
@@ -31,12 +32,15 @@ export default {
   setup() {
     const store = useRijksmuseumStore()
     const loadMoreElement = ref<HTMLElement | null>(null)
+    const artworkGrid = ref<HTMLElement | null>(null)
     const lastScrollPosition = ref(0) // Store the last scroll position
     let previousScrollPosition = 0 // Track previous scroll position
 
     onMounted(() => {
       window.addEventListener('scroll', handleScroll)
       loadMoreElement.value = document.querySelector('.fetch-more')
+      artworkGrid.value = document.querySelector('.artwork-grid')
+      store.initialize() // Call the initialize method in the store
     })
 
     onBeforeUnmount(() => {
@@ -64,7 +68,9 @@ export default {
       previousScrollPosition = window.scrollY // Track previous scroll position
       store.loadMoreArtworks().then(() => {
         // Scroll to previous position after updating artworks
-        window.scrollTo(0, previousScrollPosition)
+        nextTick(() => {
+          window.scrollTo(0, previousScrollPosition)
+        })
       })
     }
 
@@ -130,7 +136,7 @@ export default {
     position: relative;
     top: initial;
     width: 100%;
-    margin-top: 130px;
+    margin-top: 180px;
     padding: 0;
     box-sizing: border-box;
   }

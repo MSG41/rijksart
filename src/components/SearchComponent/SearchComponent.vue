@@ -9,7 +9,7 @@
         @input="updateSearchQuery"
       />
 
-      <div class="dropdowns-container">
+      <div class="dropdowns-container" v-if="showDropdowns">
         <v-select
           class="dd1"
           :options="materialsOptions"
@@ -38,13 +38,18 @@
           filterable
         />
       </div>
+      <div class="filter-icon" @click="toggleDropdowns">
+        <font-awesome-icon :icon="icons.filter" />
+      </div>
     </div>
     <div class="search-placeholder" v-if="!store.searchQuery"></div>
   </div>
 </template>
 
 <script lang="ts">
-import { ref, watch, watchEffect } from 'vue'
+import { ref } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faFilter } from '@fortawesome/free-solid-svg-icons'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import materials from '@/data/material.json'
 import techniques from '@/data/technique.json'
@@ -54,14 +59,14 @@ import vSelect from 'vue-select'
 import debounce from 'lodash/debounce'
 
 export default {
-  components: { vSelect },
+  components: { vSelect, FontAwesomeIcon },
   setup() {
     const store = useRijksmuseumStore()
 
     const updateSearchQuery = debounce(function (event: Event) {
       const query = (event.target as HTMLInputElement).value
       store.updateSearchQuery(query.trim())
-    }, 300) // Increased debounce time to 300 milliseconds
+    }, 300)
 
     const updateSelectedMaterial = debounce(function (value: string | null) {
       store.updateSelectedMaterial(value)
@@ -81,7 +86,15 @@ export default {
 
     const typesOptions = ref([...types.map((type) => type.value)])
 
-    // ...
+    const showDropdowns = ref(false)
+
+    const toggleDropdowns = () => {
+      showDropdowns.value = !showDropdowns.value
+    }
+
+    const icons = {
+      filter: faFilter
+    }
 
     return {
       store,
@@ -91,7 +104,10 @@ export default {
       updateSearchQuery,
       updateSelectedMaterial,
       updateSelectedTechnique,
-      updateSelectedType
+      updateSelectedType,
+      showDropdowns,
+      toggleDropdowns,
+      icons
     }
   }
 }
@@ -105,9 +121,10 @@ export default {
   position: fixed;
   top: 80px;
   z-index: 3;
-  width: 18rem;
+  width: fit-content;
   margin: auto;
   gap: 10px;
+  touch-action: manipulation;
 }
 
 .dropdowns-container {
@@ -116,6 +133,8 @@ export default {
   gap: 10px;
   flex: 1;
   width: fit-content;
+  height: fit-content;
+
   background-color: white;
   border-radius: 10px;
 }
@@ -135,6 +154,27 @@ export default {
 
 .search-placeholder {
   height: 40px;
+}
+
+.filter-icon {
+  /* position: sticky; */
+  /* top: 90px;
+  left: 5rem; */
+  display: flex;
+  /* justify-self: flex-end; */
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background-color: #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.filter-icon svg {
+  color: white;
+  /* width: 40px;
+  height: 40px; */
 }
 
 @media screen and (max-width: 954px) {

@@ -1,26 +1,3 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
-import { onMounted, onUnmounted } from 'vue'
-
-const store = useRijksmuseumStore()
-
-const scrollHandler = () => {
-  const isScrolledToBottom = window.innerHeight + window.pageYOffset >= document.body.offsetHeight
-  if (isScrolledToBottom) {
-    store.loadMoreArtworks()
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('scroll', scrollHandler)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', scrollHandler)
-})
-</script>
-
 <template>
   <div class="navbar">
     <header>
@@ -31,6 +8,30 @@ onUnmounted(() => {
 
   <RouterView />
 </template>
+
+<script setup lang="ts">
+import { RouterLink, RouterView } from 'vue-router'
+import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
+import { onMounted, onUnmounted } from 'vue'
+
+const store = useRijksmuseumStore()
+
+const scrollHandler = () => {
+  store.scrollHandler() // Call the scrollHandler method in the store
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', scrollHandler)
+  store.initialize() // Initialize the store state from localStorage
+  window.scrollTo(0, store.retrieveScrollPosition('home')) // Restore the scroll position
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', scrollHandler)
+  store.storeScrollPosition('home', window.scrollY) // Save the scroll position
+  store.saveStateToLocalStorage() // Save the store state to localStorage
+})
+</script>
 
 <style>
 .navbar {

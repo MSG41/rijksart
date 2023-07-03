@@ -140,6 +140,7 @@ export type ArtworkDetails = {
   techniques: string[]
   types: string[]
   artObject: ArtObject
+
 }
 
 export interface Suggestion {

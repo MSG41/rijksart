@@ -1,10 +1,10 @@
 @import './base.css';
 
-
 body {
   margin: 0;
   padding: 0;
   font-weight: normal;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #app {

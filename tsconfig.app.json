@@ -9,6 +9,7 @@
     "paths": {
       "@/*": ["src/*", "src/data/*"]
     },
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["@fortawesome/fontawesome-svg-core"]
   }
 }
