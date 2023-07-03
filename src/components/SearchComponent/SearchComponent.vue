@@ -39,7 +39,7 @@
         />
       </div>
       <div class="filter-icon" @click="toggleDropdowns">
-        <font-awesome-icon :icon="icons.filter" />
+        <!-- <font-awesome-icon :icon="icons.filter" /> -->
       </div>
     </div>
     <div class="search-placeholder" v-if="!store.searchQuery"></div>
@@ -48,8 +48,8 @@
 
 <script lang="ts">
 import { ref } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faFilter } from '@fortawesome/free-solid-svg-icons'
+// import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+// import { faFilter } from '@fortawesome/free-solid-svg-icons'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import materials from '@/data/material.json'
 import techniques from '@/data/technique.json'
@@ -59,7 +59,7 @@ import vSelect from 'vue-select'
 import debounce from 'lodash/debounce'
 
 export default {
-  components: { vSelect, FontAwesomeIcon },
+  components: { vSelect },
   setup() {
     const store = useRijksmuseumStore()
 
@@ -93,7 +93,7 @@ export default {
     }
 
     const icons = {
-      filter: faFilter
+      // filter: faFilter
     }
 
     return {
