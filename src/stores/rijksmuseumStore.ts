@@ -94,7 +94,7 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
             10 // Page size
           )
           this.artworks = [...this.artworks, ...response.artObjects]
-
+    
           // Check if there are more artworks to load
           this.reachedEnd = response.artObjects.length < 10
         } catch (error) {
@@ -105,6 +105,20 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
         }
       }
     },
+    
+    scrollHandler() {
+      const container = document.getElementById('your-container-id') // Replace with the actual ID of your container element
+      if (container !== null) {
+        // Access properties or call methods on container
+        container.style.color = 'red';
+      
+      const isScrolledToBottom = container.scrollHeight - container.scrollTop === container.clientHeight
+    
+      if (isScrolledToBottom) {
+        this.loadMoreArtworks()
+      }
+    }},
+    
 
     shouldPerformSearch() {
       return (

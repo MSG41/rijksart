@@ -1,5 +1,24 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
+import { onMounted, onUnmounted } from 'vue'
+
+const store = useRijksmuseumStore()
+
+const scrollHandler = () => {
+  const isScrolledToBottom = window.innerHeight + window.pageYOffset >= document.body.offsetHeight
+  if (isScrolledToBottom) {
+    store.loadMoreArtworks()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', scrollHandler)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', scrollHandler)
+})
 </script>
 
 <template>
@@ -14,7 +33,6 @@ import { RouterLink, RouterView } from 'vue-router'
 </template>
 
 <style>
-
 .navbar {
   position: fixed;
   top: 0;
