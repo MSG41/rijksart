@@ -121,13 +121,13 @@ export type Facet = {
 }
 
 export interface RijksmuseumApiResponse {
-  elapsedMilliseconds: number
+  elapsedMilliseconds?: number
   count: number
   artObjects: ArtworkDetails[]
-  facets: Facet[]
+  facets?: Facet[]
 }
 
-export interface ArtworkDetails {
+export type ArtworkDetails = {
   id: string
   objectNumber: string
   title: string
@@ -138,6 +138,7 @@ export interface ArtworkDetails {
   principalOrFirstMaker: string
   materials: string[]
   techniques: string[]
+  types: string[]
   artObject: ArtObject
 }
 

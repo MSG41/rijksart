@@ -1,68 +1,47 @@
 import { defineStore } from 'pinia'
-import { RijksmuseumService } from '../services/RijksmuseumService'
 import { type ArtworkDetails } from '@/types/types'
+import { RijksmuseumService } from '@/services/RijksmuseumService'
 
-export const useRijksmuseumStore = defineStore({
-  id: 'rijksmuseum',
-
+export const useRijksmuseumStore = defineStore('rijksmuseum', {
   state: () => ({
-    artworks: {} as Record<string, ArtworkDetails>,
-    artworkCache: {} as Record<string, ArtworkDetails>,
-    page: 1,
-    pageSize: 10,
-    reachedEnd: false,
+    artworks: [] as ArtworkDetails[],
+    searchQuery: '',
+    selectedMaterial: null as string | null,
+    selectedTechnique: null as string | null,
+    selectedType: null as string | null,
     loading: false,
-    searchQuery: localStorage.getItem('searchQuery') || '',
-    scrollPositions: {} as Record<string, number>
+    scrollPositions: {} as Record<string, number>,
+    reachedEnd: false,
+    lastSearchQuery: '',
+    lastSelectedMaterial: null as string | null,
+    lastSelectedTechnique: null as string | null,
+    lastSelectedType: null as string | null
   }),
 
   actions: {
-    resetPagination() {
-      this.page = 1
-      this.reachedEnd = false
+    initialize() {
+      // Perform initialization here if needed
     },
 
     updateSearchQuery(query: string) {
       this.searchQuery = query.trim()
-    },
-
-    async searchArtworks() {
-      const query = this.searchQuery
-
-      if (query === '') {
-        this.artworks = {}
-        return
-      }
-
-      try {
-        this.loading = true
-        const data = await RijksmuseumService.searchArtworks(query, this.page, this.pageSize)
-        const newArtworks = {} as Record<string, ArtworkDetails>
-
-        data.artObjects.forEach((artwork) => {
-          if (artwork.hasImage && artwork.webImage.url && artwork.showImage) {
-            newArtworks[artwork.objectNumber] = artwork
-          }
-        })
-
-        this.artworks = { ...this.artworks, ...newArtworks }
-        this.artworkCache = { ...this.artworkCache, ...newArtworks }
-        this.page += 1
-        if (data.artObjects.length < this.pageSize) {
-          this.reachedEnd = true
-        }
-      } catch (error) {
-        console.error(error)
-        this.artworks = { ...this.artworkCache }
-      } finally {
-        this.loading = false
+      if (this.searchQuery === '') {
+        this.selectedMaterial = ''
+        this.selectedTechnique = ''
+        this.selectedType = ''
       }
     },
 
-    async initializeStore() {
-      if (this.searchQuery) {
-        await this.searchArtworks()
-      }
+    updateSelectedMaterial(value: string | null) {
+      this.selectedMaterial = value
+    },
+
+    updateSelectedTechnique(value: string | null) {
+      this.selectedTechnique = value
+    },
+
+    updateSelectedType(value: string | null) {
+      this.selectedType = value
     },
 
     storeScrollPosition(routePath: string, scrollPosition: number) {
@@ -71,6 +50,80 @@ export const useRijksmuseumStore = defineStore({
 
     retrieveScrollPosition(routePath: string) {
       return this.scrollPositions[routePath] || 0
+    },
+
+    async searchArtworks() {
+      if (this.shouldPerformSearch()) {
+        try {
+          this.loading = true
+          const response = await RijksmuseumService.searchArtworks(
+            this.searchQuery,
+            this.selectedMaterial,
+            this.selectedTechnique,
+            this.selectedType,
+            1, // Page number
+            10 // Page size
+          )
+          this.artworks = response.artObjects
+          this.updateLastSearchFields()
+
+          // Check if there are more artworks to load
+          this.reachedEnd = response.artObjects.length < 10
+        } catch (error) {
+          console.error(error)
+          // Handle error
+        } finally {
+          this.loading = false
+        }
+      } else {
+        this.artworks = [] // Clear the artworks array when there are no search filters
+      }
+    },
+
+    async loadMoreArtworks() {
+      if (!this.loading && !this.reachedEnd) {
+        try {
+          this.loading = true
+          const page = Math.ceil(this.artworks.length / 10) + 1
+          const response = await RijksmuseumService.searchArtworks(
+            this.searchQuery,
+            this.selectedMaterial,
+            this.selectedTechnique,
+            this.selectedType,
+            page,
+            10 // Page size
+          )
+          this.artworks = [...this.artworks, ...response.artObjects]
+
+          // Check if there are more artworks to load
+          this.reachedEnd = response.artObjects.length < 10
+        } catch (error) {
+          console.error(error)
+          // Handle error, e.g., show error message to the user
+        } finally {
+          this.loading = false
+        }
+      }
+    },
+
+    shouldPerformSearch() {
+      return (
+        (this.searchQuery.trim() !== '' ||
+          this.selectedMaterial !== null ||
+          this.selectedTechnique !== null ||
+          this.selectedType !== null) &&
+        (this.searchQuery.trim() !== this.lastSearchQuery ||
+          this.selectedMaterial !== this.lastSelectedMaterial ||
+          this.selectedTechnique !== this.lastSelectedTechnique ||
+          this.selectedType !== this.lastSelectedType)
+      )
+    },
+
+    updateLastSearchFields() {
+      this.lastSearchQuery = this.searchQuery
+      this.lastSelectedMaterial = this.selectedMaterial
+      this.lastSelectedTechnique = this.selectedTechnique
+      this.lastSelectedType = this.selectedType
     }
   }
 })
