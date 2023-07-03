@@ -1,23 +1,22 @@
 <template>
   <div>
     <div class="search-container">
+      <div class="filter-wrapper">
+        <button class="filter-toggle" @click="toggleDropdowns">Filter</button>
+      </div>
       <input
         class="search-input"
         type="text"
         v-model="store.searchQuery"
         placeholder="Search for art..."
-        @input="updateSearchQuery"
       />
-
-      <div class="dropdowns-container" v-if="showDropdowns">
+      <div class="dropdowns-container" :class="{ open: showDropdowns }">
         <v-select
           class="dd1"
           :options="materialsOptions"
           v-model="store.selectedMaterial"
           placeholder="Select material..."
           label="label"
-          @input="updateSelectedMaterial"
-          filterable
         />
         <v-select
           class="dd1"
@@ -25,8 +24,6 @@
           v-model="store.selectedTechnique"
           placeholder="Select technique..."
           label="label"
-          @input="updateSelectedTechnique"
-          filterable
         />
         <v-select
           class="dd1"
@@ -34,12 +31,7 @@
           v-model="store.selectedType"
           placeholder="Select type..."
           label="label"
-          @input="updateSelectedType"
-          filterable
         />
-      </div>
-      <div class="filter-icon" @click="toggleDropdowns">
-        <!-- <font-awesome-icon :icon="icons.filter" /> -->
       </div>
     </div>
     <div class="search-placeholder" v-if="!store.searchQuery"></div>
@@ -47,45 +39,25 @@
 </template>
 
 <script lang="ts">
-import { ref } from 'vue'
-// import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-// import { faFilter } from '@fortawesome/free-solid-svg-icons'
+import { ref, watch } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faFilter } from '@fortawesome/free-solid-svg-icons'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import materials from '@/data/material.json'
 import techniques from '@/data/technique.json'
 import types from '@/data/type.json'
 import 'vue-select/dist/vue-select.css'
 import vSelect from 'vue-select'
-import debounce from 'lodash/debounce'
+import { debounce } from 'lodash'
 
 export default {
-  components: { vSelect },
+  components: { vSelect, FontAwesomeIcon },
   setup() {
     const store = useRijksmuseumStore()
 
-    const updateSearchQuery = debounce(function (event: Event) {
-      const query = (event.target as HTMLInputElement).value
-      store.updateSearchQuery(query.trim())
-    }, 300)
-
-    const updateSelectedMaterial = debounce(function (value: string | null) {
-      store.updateSelectedMaterial(value)
-    }, 200)
-
-    const updateSelectedTechnique = debounce(function (value: string | null) {
-      store.updateSelectedTechnique(value)
-    }, 200)
-
-    const updateSelectedType = debounce(function (value: string | null) {
-      store.updateSelectedType(value)
-    }, 200)
-
-    const materialsOptions = ref([...materials.map((material) => material.value)])
-
-    const techniquesOptions = ref([...techniques.map((technique) => technique.value)])
-
-    const typesOptions = ref([...types.map((type) => type.value)])
-
+    const materialsOptions = ref(materials.map((material) => material.value))
+    const techniquesOptions = ref(techniques.map((technique) => technique.value))
+    const typesOptions = ref(types.map((type) => type.value))
     const showDropdowns = ref(false)
 
     const toggleDropdowns = () => {
@@ -93,18 +65,31 @@ export default {
     }
 
     const icons = {
-      // filter: faFilter
+      filter: faFilter
     }
+
+    // Create a debounced version of store.searchArtworks
+    const debouncedSearchArtworks = debounce(store.searchArtworks, 300)
+
+    // Watch searchQuery and filters, and call debouncedSearchArtworks when they change
+    watch(
+      () => [
+        store.searchQuery,
+        store.selectedMaterial,
+        store.selectedTechnique,
+        store.selectedType
+      ],
+      () => {
+        debouncedSearchArtworks()
+      },
+      { immediate: true }
+    )
 
     return {
       store,
       materialsOptions,
       techniquesOptions,
       typesOptions,
-      updateSearchQuery,
-      updateSelectedMaterial,
-      updateSelectedTechnique,
-      updateSelectedType,
       showDropdowns,
       toggleDropdowns,
       icons
@@ -121,26 +106,57 @@ export default {
   position: fixed;
   top: 80px;
   z-index: 3;
-  width: fit-content;
+  width: 50%;
   margin: auto;
   gap: 10px;
   touch-action: manipulation;
 }
 
+.filter-wrapper {
+  display: flex;
+  flex-direction: row;
+  /* align-items: left; */
+}
+
+.filter-toggle {
+  margin-right: 10px;
+  background-color: #fff;
+  border: 2px solid #333;
+  color: #333;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.filter-toggle:hover {
+  background-color: #333;
+  color: #fff;
+}
+
 .dropdowns-container {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropdowns-container.open {
   display: flex;
   flex-direction: row;
   gap: 10px;
-  flex: 1;
-  width: fit-content;
-  height: fit-content;
-
-  background-color: white;
-  border-radius: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 10px;
 }
 
 .dd1 {
   width: 15rem;
+  margin-bottom: 10px;
 }
 
 .search-input {
@@ -156,40 +172,19 @@ export default {
   height: 40px;
 }
 
-.filter-icon {
-  /* position: sticky; */
-  /* top: 90px;
-  left: 5rem; */
-  display: flex;
-  /* justify-self: flex-end; */
-  align-items: center;
-  justify-content: center;
-  width: 60px;
-  height: 60px;
-  background-color: #ccc;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.filter-icon svg {
-  color: white;
-  /* width: 40px;
-  height: 40px; */
-}
-
 @media screen and (max-width: 954px) {
   .search-container {
-    flex-direction: column;
+    flex-direction: row;
     align-items: stretch;
-    top: 80px;
-    padding: 10px;
+    /* top: 80px; */
+    /* padding: 10px; */
   }
 
   .search-input {
     margin-bottom: 10px;
   }
 
-  .dropdowns-container {
+  .dropdowns-container.open {
     flex-direction: column;
     align-items: stretch;
   }
