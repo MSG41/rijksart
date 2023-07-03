@@ -11,25 +11,13 @@
 
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import { onMounted } from 'vue'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
-import { onMounted, onUnmounted } from 'vue'
 
 const store = useRijksmuseumStore()
 
-const scrollHandler = () => {
-  store.scrollHandler()
-}
-
 onMounted(() => {
-  window.addEventListener('scroll', scrollHandler)
   store.initialize()
-  window.scrollTo(0, store.retrieveScrollPosition('home'))
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', scrollHandler)
-  store.storeScrollPosition('home', window.scrollY)
-  store.saveStateToLocalStorage()
 })
 </script>
 

@@ -1,28 +1,34 @@
 <template>
-  <div class="search-wrapper">
-    <SearchComponent @search="handleSearch" />
-    <h4 v-if="store.artworks.length === 0">No art found.</h4>
-  </div>
+  <div class="home-view">
+    <div class="search-wrapper">
+      <div class="search-bar">
+        <SearchComponent />
+      </div>
 
-  <div class="artwork-grid" ref="artworkGrid">
-    <ArtworkCardComponent
-      v-for="artwork in store.artworks"
-      :key="artwork.objectNumber"
-      :artwork="artwork"
-      :loading="store.loading"
-      :scroll-position="store.retrieveScrollPosition(artwork.objectNumber)"
-      @update-scroll-position="store.storeScrollPosition(artwork.objectNumber, $event)"
-    />
-    <div class="fetch-more" ref="loadMoreElement"></div>
+      <div class="filter-wrapper">
+        <button class="reset-button" @click="resetFilters">Reset</button>
+      </div>
+    </div>
+    <h4 class="no-art" v-if="store.artworks.length === 0">No art found.</h4>
+    <div class="artwork-grid" ref="artworkGrid">
+      <ArtworkCardComponent
+        v-for="artwork in store.artworks"
+        :key="artwork.objectNumber"
+        :artwork="artwork"
+        :loading="store.loading"
+        :scroll-position="store.retrieveScrollPosition(artwork.objectNumber)"
+        @update-scroll-position="store.storeScrollPosition(artwork.objectNumber, $event)"
+      />
+      <div class="fetch-more" ref="loadMoreElement" v-if="!store.reachedEnd"></div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watchEffect } from 'vue'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import SearchComponent from '@/components/SearchComponent/SearchComponent.vue'
 import ArtworkCardComponent from '@/components/ArtworkCardComponent/ArtworkCardComponent.vue'
-import { debounce } from 'lodash'
 
 export default {
   components: {
@@ -33,116 +39,131 @@ export default {
     const store = useRijksmuseumStore()
     const loadMoreElement = ref<HTMLElement | null>(null)
     const artworkGrid = ref<HTMLElement | null>(null)
-    const lastScrollPosition = ref(0)
-    let previousScrollPosition = 0
 
     onMounted(() => {
       window.addEventListener('scroll', handleScroll)
       loadMoreElement.value = document.querySelector('.fetch-more')
       artworkGrid.value = document.querySelector('.artwork-grid')
-      store.initialize() // Call the initialize method in the store
+      store.initialize()
     })
 
     onBeforeUnmount(() => {
       window.removeEventListener('scroll', handleScroll)
-      store.storeScrollPosition('home', lastScrollPosition.value)
     })
 
-    const handleScroll = debounce(() => {
+    const handleScroll = () => {
       if (
         window.innerHeight + window.scrollY >= document.documentElement.offsetHeight &&
         !store.loading &&
         !store.reachedEnd
       ) {
-        loadMoreArtworks()
+        store.loadMoreArtworks()
       }
-    }, 200)
-
-    const handleSearch = (query: string) => {
-      store.updateSearchQuery(query)
-      store.searchArtworks()
     }
 
-    const loadMoreArtworks = () => {
-      lastScrollPosition.value = window.scrollY
-      previousScrollPosition = window.scrollY
-      store.loadMoreArtworks().then(() => {
-        nextTick(() => {
-          window.scrollTo(0, previousScrollPosition)
-        })
-      })
+    const resetFilters = () => {
+      store.resetFilters()
     }
-
-    watch(
-      () => [
-        store.searchQuery,
-        store.selectedMaterial,
-        store.selectedTechnique,
-        store.selectedType
-      ],
-      () => {
-        store.searchArtworks()
-      }
-    )
 
     return {
       store,
       loadMoreElement,
-      handleSearch,
-      loadMoreArtworks
+      resetFilters
     }
   }
 }
 </script>
 
 <style scoped>
+.home-view {
+  margin-top: 60px;
+  padding-top: 20px; /* Adjust the top padding as needed */
+}
+
+.search-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* max-width: 960px; */
+  margin: 0 auto;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.search-bar {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.filter-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.filter-toggle {
+  margin-right: 10px;
+  background-color: #fff;
+  border: 2px solid #333;
+  color: #333;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.filter-toggle:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+.reset-button {
+  background-color: #fff;
+  border: 2px solid #333;
+  color: #333;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.reset-button:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+.no-art {
+  margin-top: 40px; /* Adjust the top margin as needed */
+  text-align: center;
+  color: #888;
+}
+
 .artwork-grid {
   display: grid;
-  margin-top: 100px;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
   padding: 20px;
   box-sizing: border-box;
 }
 
-.search-wrapper {
-  position: sticky;
-  top: 100px;
-  left: 20px;
-  z-index: 3;
-  width: 100%;
-  max-width: 600px;
-  padding: 0 10px;
-  box-sizing: border-box;
-}
-
-.loading {
-  margin-top: 50px;
-  text-align: center;
-}
-
-.search-placeholder {
-  width: fit-content;
-  height: 40px;
-}
-
-.fetch-more {
-  height: 100px;
-}
-
 @media (max-width: 660px) {
   .search-wrapper {
-    position: relative;
-    top: initial;
-    width: 100%;
-    margin-top: 180px;
-    padding: 0;
-    box-sizing: border-box;
+    flex-wrap: wrap;
   }
+
+  .search-bar {
+    margin-bottom: 10px;
+  }
+
+  .no-art {
+    margin-top: 20px;
+  }
+
   .artwork-grid {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .filter-wrapper {
+    margin-bottom: 10px;
   }
 }
 </style>
