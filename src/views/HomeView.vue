@@ -27,7 +27,7 @@
         :scroll-position="store.retrieveScrollPosition(artwork.objectNumber)"
         @update-scroll-position="store.storeScrollPosition(artwork.objectNumber, $event)"
       />
-      <div class="fetch-more" ref="loadMoreElement" v-if="!store.reachedEnd"></div>
+      <div class="fetch-more" ref="loadMoreElement"></div>
     </div>
   </div>
 </template>
@@ -53,31 +53,44 @@ export default {
     })
 
     onMounted(() => {
-      window.addEventListener('scroll', handleScroll, { passive: true })
-      window.addEventListener('touchmove', handleScroll, { passive: true })
-      loadMoreElement.value = document.querySelector('.fetch-more')
       artworkGrid.value = document.querySelector('.artwork-grid')
       store.initialize()
       store.searchArtworks()
+      setupIntersectionObserver()
     })
 
-    onBeforeUnmount(() => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('touchmove', handleScroll)
-    })
+    const setupIntersectionObserver = () => {
+      const options = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+      }
 
-    const handleScroll = () => {
-      if (
-        window.innerHeight + window.scrollY >= document.documentElement.offsetHeight &&
-        !store.loading &&
-        !store.reachedEnd
-      ) {
+      const observer = new IntersectionObserver(handleIntersection, options)
+      observer.observe(loadMoreElement.value!)
+    }
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+      const entry = entries[0]
+      if (entry.isIntersecting && !store.loading && !store.reachedEnd) {
         store.loadMoreArtworks()
       }
     }
 
     const resetFilters = () => {
       store.resetFilters()
+    }
+
+    onBeforeUnmount(() => {
+      const observer = getIntersectionObserver()
+      if (observer) {
+        observer.disconnect()
+      }
+    })
+
+    const getIntersectionObserver = () => {
+      const observer = artworkGrid.value?.querySelector('.fetch-more') as HTMLElement
+      return observer?.dataset.observer ? JSON.parse(observer.dataset.observer) : null
     }
 
     return {
