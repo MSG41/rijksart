@@ -10,13 +10,13 @@
       </div>
     </div>
 
-    <h4 class="no-art" v-if="store.artworks.length === 0 && !store.loading">
-      No art found. <br />
-      <br />
+    <h4 class="no-art description-text" v-if="showDescriptionText">
       This is a list of artworks present in the Rijksmuseum API. Use the search bar and filters to
       display artworks that match your criteria. Click the "Reset" button to clear all filters and
       start a new search.
     </h4>
+
+    <h4 class="no-art" v-if="store.artworks.length === 0 && !store.loading">No art found.</h4>
 
     <div class="artwork-grid" ref="artworkGrid">
       <ArtworkCardComponent
@@ -48,8 +48,12 @@ export default {
     const loadMoreElement = ref<HTMLElement | null>(null)
     const artworkGrid = ref<HTMLElement | null>(null)
 
+    const showDescriptionText = computed(() => {
+      return store.artworks.length === 0 && !store.loading
+    })
+
     onMounted(() => {
-      window.addEventListener('scroll', handleScroll)
+      window.addEventListener('scroll', handleScroll, { passive: true })
       loadMoreElement.value = document.querySelector('.fetch-more')
       artworkGrid.value = document.querySelector('.artwork-grid')
       store.initialize()
@@ -77,7 +81,8 @@ export default {
     return {
       store,
       loadMoreElement,
-      resetFilters
+      resetFilters,
+      showDescriptionText
     }
   }
 }
@@ -129,6 +134,10 @@ export default {
   padding: 2rem;
   max-width: 800px;
   margin: auto;
+}
+
+.description-text {
+  margin-top: 20px;
 }
 
 .artwork-grid {
