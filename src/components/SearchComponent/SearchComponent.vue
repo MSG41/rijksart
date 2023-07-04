@@ -106,7 +106,7 @@ export default {
   position: fixed;
   top: 80px;
   z-index: 3;
-  width: 50%;
+  width: 200px;
   margin: auto;
   gap: 10px;
   touch-action: manipulation;
@@ -176,6 +176,7 @@ export default {
   .search-container {
     flex-direction: row;
     align-items: stretch;
+
     /* top: 80px; */
     /* padding: 10px; */
   }
@@ -185,8 +186,8 @@ export default {
   }
 
   .dropdowns-container.open {
-    flex-direction: column;
-    align-items: stretch;
+    /* flex-direction: column;
+    align-items: stretch; */
   }
 }
 </style>
