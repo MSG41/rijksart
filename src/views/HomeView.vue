@@ -9,7 +9,15 @@
         <button class="reset-button" @click="resetFilters">Reset</button>
       </div>
     </div>
-    <h4 class="no-art" v-if="store.artworks.length === 0">No art found.</h4>
+
+    <h4 class="no-art" v-if="store.artworks.length === 0 && !store.loading">
+      No art found. <br />
+      <br />
+      This is a list of artworks present in the Rijksmuseum API. Use the search bar and filters to
+      display artworks that match your criteria. Click the "Reset" button to clear all filters and
+      start a new search.
+    </h4>
+
     <div class="artwork-grid" ref="artworkGrid">
       <ArtworkCardComponent
         v-for="artwork in store.artworks"
@@ -25,7 +33,7 @@
 </template>
 
 <script lang="ts">
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref, computed } from 'vue'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import SearchComponent from '@/components/SearchComponent/SearchComponent.vue'
 import ArtworkCardComponent from '@/components/ArtworkCardComponent/ArtworkCardComponent.vue'
@@ -45,7 +53,7 @@ export default {
       loadMoreElement.value = document.querySelector('.fetch-more')
       artworkGrid.value = document.querySelector('.artwork-grid')
       store.initialize()
-      store.searchArtworks() // Perform initial search
+      store.searchArtworks()
     })
 
     onBeforeUnmount(() => {
@@ -78,14 +86,13 @@ export default {
 <style scoped>
 .home-view {
   margin-top: 60px;
-  padding-top: 20px; /* Adjust the top padding as needed */
+  padding-top: 20px;
 }
 
 .search-wrapper {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* max-width: 960px; */
   margin: 0 auto;
   padding: 0 10px;
   box-sizing: border-box;
@@ -99,22 +106,6 @@ export default {
 .filter-wrapper {
   display: flex;
   align-items: center;
-}
-
-.filter-toggle {
-  margin-right: 10px;
-  background-color: #fff;
-  border: 2px solid #333;
-  color: #333;
-  font-weight: bold;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.filter-toggle:hover {
-  background-color: #333;
-  color: #fff;
 }
 
 .reset-button {
@@ -133,9 +124,11 @@ export default {
 }
 
 .no-art {
-  margin-top: 40px; /* Adjust the top margin as needed */
   text-align: center;
   color: #888;
+  padding: 2rem;
+  max-width: 800px;
+  margin: auto;
 }
 
 .artwork-grid {
@@ -153,10 +146,6 @@ export default {
 
   .search-bar {
     margin-bottom: 10px;
-  }
-
-  .no-art {
-    margin-top: 20px;
   }
 
   .artwork-grid {
