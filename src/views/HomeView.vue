@@ -54,6 +54,7 @@ export default {
 
     onMounted(() => {
       window.addEventListener('scroll', handleScroll, { passive: true })
+      window.addEventListener('touchmove', handleScroll, { passive: true })
       loadMoreElement.value = document.querySelector('.fetch-more')
       artworkGrid.value = document.querySelector('.artwork-grid')
       store.initialize()
@@ -62,6 +63,7 @@ export default {
 
     onBeforeUnmount(() => {
       window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('touchmove', handleScroll)
     })
 
     const handleScroll = () => {
