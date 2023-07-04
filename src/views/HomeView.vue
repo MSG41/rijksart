@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { onMounted, onBeforeUnmount, ref, watchEffect } from 'vue'
+import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import SearchComponent from '@/components/SearchComponent/SearchComponent.vue'
 import ArtworkCardComponent from '@/components/ArtworkCardComponent/ArtworkCardComponent.vue'
@@ -45,6 +45,7 @@ export default {
       loadMoreElement.value = document.querySelector('.fetch-more')
       artworkGrid.value = document.querySelector('.artwork-grid')
       store.initialize()
+      store.searchArtworks() // Perform initial search
     })
 
     onBeforeUnmount(() => {

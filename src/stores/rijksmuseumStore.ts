@@ -49,7 +49,7 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
         this.selectedTechnique,
         this.selectedType,
         1,
-        60
+        10 // Limit to 10 results
       )
       this.artworks = response.artObjects
       this.loading = false
@@ -60,14 +60,14 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
     async loadMoreArtworks() {
       if (!this.shouldPerformSearch() || this.loading || this.reachedEnd) return
       this.loading = true
-      const page = Math.floor(this.artworks.length / 60) + 1
+      const page = Math.floor(this.artworks.length / 10) + 1
       const response = await RijksmuseumService.searchArtworks(
         this.searchQuery,
         this.selectedMaterial,
         this.selectedTechnique,
         this.selectedType,
         page,
-        60
+        10 // Load 10 more results
       )
       this.artworks.push(...response.artObjects)
       this.loading = false
