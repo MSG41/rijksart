@@ -173,21 +173,9 @@ export default {
 }
 
 @media screen and (max-width: 954px) {
-  .search-container {
-    flex-direction: row;
-    align-items: stretch;
-
-    /* top: 80px; */
-    /* padding: 10px; */
-  }
-
   .search-input {
     margin-bottom: 10px;
-  }
-
-  .dropdowns-container.open {
-    /* flex-direction: column;
-    align-items: stretch; */
+    width: 150px;
   }
 }
 </style>
