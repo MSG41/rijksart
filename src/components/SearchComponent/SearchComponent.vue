@@ -13,22 +13,22 @@
       <div class="dropdowns-container" :class="{ open: showDropdowns }">
         <v-select
           class="dd1"
-          :options="materialsOptions"
-          v-model="store.selectedMaterial"
+          :options="capitalizedMaterialsOptions"
+          v-model="selectedCapitalizedMaterial"
           placeholder="Select material..."
           label="label"
         />
         <v-select
           class="dd1"
-          :options="techniquesOptions"
-          v-model="store.selectedTechnique"
+          :options="capitalizedTechniquesOptions"
+          v-model="selectedCapitalizedTechnique"
           placeholder="Select technique..."
           label="label"
         />
         <v-select
           class="dd1"
-          :options="typesOptions"
-          v-model="store.selectedType"
+          :options="capitalizedTypesOptions"
+          v-model="selectedCapitalizedType"
           placeholder="Select type..."
           label="label"
         />
@@ -55,9 +55,9 @@ export default {
   setup() {
     const store = useRijksmuseumStore()
 
-    const materialsOptions = ref<string[]>([])
-    const techniquesOptions = ref<string[]>([])
-    const typesOptions = ref<string[]>([])
+    const capitalizedMaterialsOptions = ref<string[]>([])
+    const capitalizedTechniquesOptions = ref<string[]>([])
+    const capitalizedTypesOptions = ref<string[]>([])
     const showDropdowns = ref(false)
 
     const toggleDropdowns = () => {
@@ -68,49 +68,64 @@ export default {
       filter: faFilter
     }
 
-    // Create a debounced version of store.searchArtworks
     const debouncedSearchArtworks = debounce(store.searchArtworks, 300)
 
-    // Helper function to capitalize the first letter of each word
     const capitalizeFirstLetter = (str: string) => {
       return str.replace(/\b\w/g, (char) => char.toUpperCase())
     }
 
-    // Modify the mapping functions and sort the options arrays
-    materialsOptions.value = materials
+    capitalizedMaterialsOptions.value = materials
       .map((material) => capitalizeFirstLetter(material.value))
       .sort((a, b) => a.localeCompare(b))
 
-    techniquesOptions.value = techniques
+    capitalizedTechniquesOptions.value = techniques
       .map((technique) => capitalizeFirstLetter(technique.value))
       .sort((a, b) => a.localeCompare(b))
 
-    typesOptions.value = types
+    capitalizedTypesOptions.value = types
       .map((type) => capitalizeFirstLetter(type.value))
       .sort((a, b) => a.localeCompare(b))
 
-    // Watch searchQuery and filters, and call debouncedSearchArtworks when they change
+    const selectedCapitalizedMaterial = ref<string | null>(null)
+    const selectedCapitalizedTechnique = ref<string | null>(null)
+    const selectedCapitalizedType = ref<string | null>(null)
+
+    // Watch the selected capitalized filter values and update the original filter values in the store
     watch(
-      () => [
-        store.searchQuery,
-        store.selectedMaterial,
-        store.selectedTechnique,
-        store.selectedType
-      ],
+      [selectedCapitalizedMaterial, selectedCapitalizedTechnique, selectedCapitalizedType],
+      ([material, technique, type]) => {
+        store.selectedMaterial = material
+          ? materials.find((m) => capitalizeFirstLetter(m.value) === material)?.value || null
+          : null
+        store.selectedTechnique = technique
+          ? techniques.find((t) => capitalizeFirstLetter(t.value) === technique)?.value || null
+          : null
+        store.selectedType = type
+          ? types.find((t) => capitalizeFirstLetter(t.value) === type)?.value || null
+          : null
+        debouncedSearchArtworks()
+      }
+    )
+
+    // Watch searchQuery in the store and trigger the debounced search
+    watch(
+      () => store.searchQuery,
       () => {
         debouncedSearchArtworks()
-      },
-      { immediate: true }
+      }
     )
 
     return {
       store,
-      materialsOptions,
-      techniquesOptions,
-      typesOptions,
+      capitalizedMaterialsOptions,
+      capitalizedTechniquesOptions,
+      capitalizedTypesOptions,
       showDropdowns,
       toggleDropdowns,
-      icons
+      icons,
+      selectedCapitalizedMaterial,
+      selectedCapitalizedTechnique,
+      selectedCapitalizedType
     }
   }
 }
@@ -133,7 +148,6 @@ export default {
 .filter-wrapper {
   display: flex;
   flex-direction: row;
-  /* align-items: left; */
 }
 
 .filter-toggle {
