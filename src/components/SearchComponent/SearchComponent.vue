@@ -55,9 +55,9 @@ export default {
   setup() {
     const store = useRijksmuseumStore()
 
-    const materialsOptions = ref(materials.map((material) => material.value))
-    const techniquesOptions = ref(techniques.map((technique) => technique.value))
-    const typesOptions = ref(types.map((type) => type.value))
+    const materialsOptions = ref<string[]>([])
+    const techniquesOptions = ref<string[]>([])
+    const typesOptions = ref<string[]>([])
     const showDropdowns = ref(false)
 
     const toggleDropdowns = () => {
@@ -70,6 +70,24 @@ export default {
 
     // Create a debounced version of store.searchArtworks
     const debouncedSearchArtworks = debounce(store.searchArtworks, 300)
+
+    // Helper function to capitalize the first letter of each word
+    const capitalizeFirstLetter = (str: string) => {
+      return str.replace(/\b\w/g, (char) => char.toUpperCase())
+    }
+
+    // Modify the mapping functions and sort the options arrays
+    materialsOptions.value = materials
+      .map((material) => capitalizeFirstLetter(material.value))
+      .sort((a, b) => a.localeCompare(b))
+
+    techniquesOptions.value = techniques
+      .map((technique) => capitalizeFirstLetter(technique.value))
+      .sort((a, b) => a.localeCompare(b))
+
+    typesOptions.value = types
+      .map((type) => capitalizeFirstLetter(type.value))
+      .sort((a, b) => a.localeCompare(b))
 
     // Watch searchQuery and filters, and call debouncedSearchArtworks when they change
     watch(
