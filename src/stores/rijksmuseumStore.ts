@@ -11,9 +11,9 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
   state: () => ({
     artworks: [] as ArtworkDetails[],
     searchQuery: '',
-    selectedMaterial: null as string | null,
-    selectedTechnique: null as string | null,
-    selectedType: null as string | null,
+    selectedMaterial: null as { value: string } | null,
+    selectedTechnique: null as { value: string } | null,
+    selectedType: null as { value: string } | null,
     materials: materials
       .map((material) => ({
         label: capitalizeFirstLetter(material.value),
@@ -58,14 +58,20 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
     async searchArtworks() {
       if (!this.shouldPerformSearch()) return
       this.loading = true
+
+      const typeValue = this.selectedType?.value || null
+      const materialValue = this.selectedMaterial?.value || null
+      const techniqueValue = this.selectedTechnique?.value || null
+
       const response = await RijksmuseumService.searchArtworks(
         this.searchQuery,
-        this.selectedMaterial,
-        this.selectedTechnique,
-        this.selectedType,
+        materialValue,
+        techniqueValue,
+        typeValue,
         1,
         10 // Limit to 10 results
       )
+
       this.artworks = response.artObjects
       this.loading = false
       this.reachedEnd = false
@@ -78,9 +84,9 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
       const page = Math.floor(this.artworks.length / 10) + 1
       const response = await RijksmuseumService.searchArtworks(
         this.searchQuery,
-        this.selectedMaterial,
-        this.selectedTechnique,
-        this.selectedType,
+        this.selectedMaterial?.value || null,
+        this.selectedTechnique?.value || null,
+        this.selectedType?.value || null,
         page,
         10 // Load 10 more results
       )
