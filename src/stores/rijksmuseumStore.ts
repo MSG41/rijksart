@@ -14,9 +14,24 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
     selectedMaterial: null as string | null,
     selectedTechnique: null as string | null,
     selectedType: null as string | null,
-    materials: materials.map((material) => material.value),
-    techniques: techniques.map((technique) => technique.value),
-    types: types.map((type) => type.value),
+    materials: materials
+      .map((material) => ({
+        label: capitalizeFirstLetter(material.value),
+        value: material.value
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
+    techniques: techniques
+      .map((technique) => ({
+        label: capitalizeFirstLetter(technique.value),
+        value: technique.value
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
+    types: types
+      .map((type) => ({
+        label: capitalizeFirstLetter(type.value),
+        value: type.value
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
     loading: false,
     scrollPositions: {} as Record<string, number>,
     reachedEnd: false,
@@ -113,9 +128,13 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
         lastSearchQuery: this.lastSearchQuery,
         lastSelectedMaterial: this.lastSelectedMaterial,
         lastSelectedTechnique: this.lastSelectedTechnique,
-        lastSelectedType: this.lastSelectedType
+        lastSelectedType: this.lastSelectedType,
+        scrollPositions: this.scrollPositions
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToStore))
     }
   }
 })
+const capitalizeFirstLetter = (str: string) => {
+  return str.replace(/\b\w/g, (char) => char.toUpperCase())
+}
