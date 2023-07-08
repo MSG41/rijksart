@@ -1,14 +1,14 @@
 <template>
   <router-link :to="`/artwork/${artwork.objectNumber}`" class="artwork-card">
-    <div v-if="loading" class="loading">
-      <div class="spinner"></div>
-    </div>
-    <div v-else>
+    <div class="card-content" v-if="!loading">
       <h2>{{ artwork.title }}</h2>
       <div v-if="artwork.hasImage && artwork.webImage.url" class="image-container">
         <img class="artwork-image" :src="artwork.webImage.url" :alt="artwork.title" />
       </div>
       <p>{{ artwork.longTitle }}</p>
+    </div>
+    <div class="card-content loading" v-else>
+      <div class="spinner"></div>
     </div>
   </router-link>
 </template>
@@ -62,25 +62,19 @@ export default {
   margin-bottom: 10px;
 }
 
-.loading {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+.card-content.loading {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(255, 255, 255, 0.8);
 }
 
 .spinner {
-  border: 8px solid #f3f3f3;
-  border-top: 8px solid #3498db;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 2s linear infinite;
+  width: 5rem;
+  height: 5rem;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {

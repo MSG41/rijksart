@@ -38,7 +38,8 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
     lastSearchQuery: '',
     lastSelectedMaterial: null as string | null,
     lastSelectedTechnique: null as string | null,
-    lastSelectedType: null as string | null
+    lastSelectedType: null as string | null,
+    page: 1
   }),
 
   actions: {
@@ -81,16 +82,25 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
     async loadMoreArtworks() {
       if (!this.shouldPerformSearch() || this.loading || this.reachedEnd) return
       this.loading = true
-      const page = Math.floor(this.artworks.length / 10) + 1
+      this.page = Math.floor(this.artworks.length / 10) + 1
       const response = await RijksmuseumService.searchArtworks(
         this.searchQuery,
         this.selectedMaterial?.value || null,
         this.selectedTechnique?.value || null,
         this.selectedType?.value || null,
-        page,
-        10 // Load 10 more results
+        this.page,
+        10
       )
-      this.artworks.push(...response.artObjects)
+      const newArtworks = response.artObjects
+      this.artworks.push(...newArtworks)
+
+      // Update scroll positions for new artworks
+      newArtworks.forEach((artwork) => {
+        if (!this.scrollPositions[artwork.objectNumber]) {
+          this.scrollPositions[artwork.objectNumber] = 0
+        }
+      })
+
       this.loading = false
       this.reachedEnd = response.artObjects.length === 0
       this.saveStateToLocalStorage()
@@ -105,6 +115,7 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
       this.reachedEnd = false
       this.loading = false
       this.scrollPositions = {}
+      this.page = 1
       this.saveStateToLocalStorage()
       this.searchArtworks()
     },
@@ -135,7 +146,8 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
         lastSelectedMaterial: this.lastSelectedMaterial,
         lastSelectedTechnique: this.lastSelectedTechnique,
         lastSelectedType: this.lastSelectedType,
-        scrollPositions: this.scrollPositions
+        scrollPositions: this.scrollPositions,
+        page: this.page
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToStore))
     }

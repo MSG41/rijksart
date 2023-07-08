@@ -55,9 +55,7 @@ export default {
   setup() {
     const store = useRijksmuseumStore()
 
-    const selectedMaterial = ref<string | null>(null)
-    const selectedTechnique = ref<string | null>(null)
-    const selectedType = ref<string | null>(null)
+    
     const showDropdowns = ref(false)
 
     const toggleDropdowns = () => {

@@ -24,19 +24,23 @@
         :key="artwork.objectNumber"
         :artwork="artwork"
         :loading="store.loading"
-        :scroll-position="store.retrieveScrollPosition(artwork.objectNumber)"
-        @update-scroll-position="store.storeScrollPosition(artwork.objectNumber, $event)"
+        :scroll-position="store.scrollPositions[artwork.objectNumber]"
+        @update-scroll-position="updateScrollPosition(artwork.objectNumber, $event)"
+        @click.native="handleClick(artwork)"
       />
+
       <div class="fetch-more" ref="loadMoreElement"></div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { onMounted, onBeforeUnmount, ref, computed } from 'vue'
+import { onMounted, onBeforeUnmount, ref, computed, nextTick } from 'vue'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import SearchComponent from '@/components/SearchComponent/SearchComponent.vue'
 import ArtworkCardComponent from '@/components/ArtworkCardComponent/ArtworkCardComponent.vue'
+import router from '@/router'
+import { type ArtworkDetails } from '@/types/types'
 
 export default {
   components: {
@@ -48,14 +52,22 @@ export default {
     const loadMoreElement = ref<HTMLElement | null>(null)
     const artworkGrid = ref<HTMLElement | null>(null)
 
+    let observer: IntersectionObserver | null = null
+
     const showDescriptionText = computed(() => {
       return store.artworks.length === 0 && !store.loading
     })
 
-    onMounted(() => {
-      artworkGrid.value = document.querySelector('.artwork-grid')
+    onMounted(async () => {
       store.initialize()
-      store.searchArtworks()
+      const { y = 0, page = 1 } = JSON.parse(localStorage.getItem('scrollPos') || '{}')
+      for (let i = 1; i <= page; i++) {
+        await store.loadMoreArtworks() // Make sure this doesn't reset the artworks array
+      }
+
+      // Wait for the next DOM update so that all artworks are rendered
+      await nextTick()
+      window.scrollTo(0, y)
       setupIntersectionObserver()
     })
 
@@ -66,8 +78,8 @@ export default {
         threshold: 0.1
       }
 
-      const observer = new IntersectionObserver(handleIntersection, options)
-      observer.observe(loadMoreElement.value!)
+      observer = new IntersectionObserver(handleIntersection, options)
+      if (loadMoreElement.value) observer.observe(loadMoreElement.value)
     }
 
     const handleIntersection = (entries: IntersectionObserverEntry[]) => {
@@ -82,22 +94,29 @@ export default {
     }
 
     onBeforeUnmount(() => {
-      const observer = getIntersectionObserver()
       if (observer) {
         observer.disconnect()
       }
     })
 
-    const getIntersectionObserver = () => {
-      const observer = artworkGrid.value?.querySelector('.fetch-more') as HTMLElement
-      return observer?.dataset.observer ? JSON.parse(observer.dataset.observer) : null
+    const handleClick = (artwork: ArtworkDetails) => {
+      const y = window.scrollY
+      const page = store.page
+      localStorage.setItem('scrollPos', JSON.stringify({ y, page }))
+      router.push({ name: 'ArtworkDetails', params: { id: artwork.objectNumber } })
+    }
+
+    const updateScrollPosition = (objectNumber: string, position: number) => {
+      store.storeScrollPosition(objectNumber, position)
     }
 
     return {
       store,
       loadMoreElement,
       resetFilters,
-      showDescriptionText
+      showDescriptionText,
+      handleClick,
+      updateScrollPosition
     }
   }
 }

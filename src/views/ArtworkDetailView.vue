@@ -100,7 +100,7 @@ export default {
       const objectNumber = route.params.objectNumber
       if (typeof objectNumber === 'string') {
         try {
-          scrollPosition.value = window.pageYOffset // Store the scroll position
+          scrollPosition.value = window.scrollY // Store the scroll position
           artworkDetails.value = await RijksmuseumService.fetchArtworkDetails(objectNumber)
           loading.value = false
         } catch (error: any) {
@@ -112,16 +112,15 @@ export default {
     })
 
     const goBack = () => {
-  loading.value = true
-  store.storeScrollPosition(route.fullPath, scrollPosition.value) // Store the scroll position in the store
-  router.back() // Go back one step in the browser history
-}
-
+      // Store the scroll position in the store
+      store.storeScrollPosition(route.fullPath, scrollPosition.value)
+      // Go back to the previous page using router.back()
+      router.back()
+    }
 
     onBeforeUnmount(() => {
-      if (route.name === 'home') {
-        store.storeScrollPosition(route.fullPath, scrollPosition.value) // Store the scroll position in the store
-      }
+      // Store the scroll position in the store
+      store.storeScrollPosition(route.fullPath, scrollPosition.value)
     })
 
     return {
