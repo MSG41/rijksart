@@ -58,6 +58,17 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
 
     async searchArtworks() {
       if (!this.shouldPerformSearch()) return
+
+      // Check if the artworks are already available in localStorage
+      const storedArtworks = JSON.parse(localStorage.getItem('artworks') || '[]')
+      if (storedArtworks.length > 0) {
+        this.artworks = storedArtworks
+        this.loading = false
+        this.reachedEnd = false
+        this.saveStateToLocalStorage()
+        return
+      }
+
       this.loading = true
 
       const typeValue = this.selectedType?.value || null
@@ -81,29 +92,43 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
 
     async loadMoreArtworks() {
       if (!this.shouldPerformSearch() || this.loading || this.reachedEnd) return
-      this.loading = true
-      this.page = Math.floor(this.artworks.length / 10) + 1
-      const response = await RijksmuseumService.searchArtworks(
-        this.searchQuery,
-        this.selectedMaterial?.value || null,
-        this.selectedTechnique?.value || null,
-        this.selectedType?.value || null,
-        this.page,
-        10
-      )
-      const newArtworks = response.artObjects
-      this.artworks.push(...newArtworks)
 
-      // Update scroll positions for new artworks
-      newArtworks.forEach((artwork) => {
-        if (!this.scrollPositions[artwork.objectNumber]) {
-          this.scrollPositions[artwork.objectNumber] = 0
-        }
-      })
+      const container = document.documentElement
+      const containerHeight = container.clientHeight
+      const contentHeight = container.scrollHeight
+      const scrollPosition = container.scrollTop
 
-      this.loading = false
-      this.reachedEnd = response.artObjects.length === 0
-      this.saveStateToLocalStorage()
+      // Calculate the remaining content height
+      const remainingContentHeight = contentHeight - (scrollPosition + containerHeight)
+
+      // Check if the remaining content height is less than or equal to 10% of the container height
+      if (remainingContentHeight <= containerHeight * 0.1) {
+        this.loading = true
+        const startIndex = this.artworks.length // Store the current number of artworks
+        this.page = Math.floor(startIndex / 10) + 1 // Calculate the current page based on the startIndex
+        const response = await RijksmuseumService.searchArtworks(
+          this.searchQuery,
+          this.selectedMaterial?.value || null,
+          this.selectedTechnique?.value || null,
+          this.selectedType?.value || null,
+          this.page,
+          10
+        )
+        const newArtworks = response.artObjects
+        this.artworks.push(...newArtworks)
+
+        // Update scroll positions for new artworks
+        newArtworks.forEach((artwork, index) => {
+          if (!this.scrollPositions[artwork.objectNumber]) {
+            this.scrollPositions[artwork.objectNumber] = 0
+          }
+          this.scrollPositions[artwork.objectNumber] += startIndex + index // Adjust the scroll position based on the startIndex
+        })
+
+        this.loading = false
+        this.reachedEnd = response.artObjects.length === 0
+        this.saveStateToLocalStorage()
+      }
     },
 
     resetFilters() {
@@ -150,9 +175,11 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
         page: this.page
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToStore))
+      localStorage.setItem('artworks', JSON.stringify(this.artworks)) // Store the fetched artworks in localStorage
     }
   }
 })
+
 const capitalizeFirstLetter = (str: string) => {
   return str.replace(/\b\w/g, (char) => char.toUpperCase())
 }

@@ -27,7 +27,7 @@
         :scroll-position="store.scrollPositions[artwork.objectNumber]"
         @update-scroll-position="updateScrollPosition(artwork.objectNumber, $event)"
         @click.native="handleClick(artwork)"
-      />
+      ></ArtworkCardComponent>
 
       <div class="fetch-more" ref="loadMoreElement"></div>
     </div>
@@ -54,18 +54,15 @@ export default {
 
     let observer: IntersectionObserver | null = null
 
-    const showDescriptionText = computed(() => {
-      return store.artworks.length === 0 && !store.loading
-    })
+    const showDescriptionText = computed(() => store.artworks.length === 0 && !store.loading)
 
     onMounted(async () => {
       store.initialize()
       const { y = 0, page = 1 } = JSON.parse(localStorage.getItem('scrollPos') || '{}')
       for (let i = 1; i <= page; i++) {
-        await store.loadMoreArtworks() // Make sure this doesn't reset the artworks array
+        await store.loadMoreArtworks()
       }
 
-      // Wait for the next DOM update so that all artworks are rendered
       await nextTick()
       window.scrollTo(0, y)
       setupIntersectionObserver()
@@ -103,7 +100,7 @@ export default {
       const y = window.scrollY
       const page = store.page
       localStorage.setItem('scrollPos', JSON.stringify({ y, page }))
-      router.push({ name: 'ArtworkDetails', params: { id: artwork.objectNumber } })
+      router.push({ name: 'artworkDetail', params: { objectNumber: artwork.objectNumber } })
     }
 
     const updateScrollPosition = (objectNumber: string, position: number) => {
