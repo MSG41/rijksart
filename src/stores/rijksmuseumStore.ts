@@ -38,13 +38,19 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
     lastSearchQuery: '',
     lastSelectedMaterial: null as string | null,
     lastSelectedTechnique: null as string | null,
-    lastSelectedType: null as string | null
+    lastSelectedType: null as string | null,
+    page: 1
   }),
 
   actions: {
     initialize() {
       const storedState = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
       Object.assign(this, storedState)
+
+      if (!storedState || Object.keys(storedState).length === 0) {
+        this.artworks = []
+        this.searchArtworks()
+      }
     },
 
     retrieveScrollPosition(objectNumber: string): number {
@@ -55,41 +61,55 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
       this.scrollPositions[objectNumber] = position
     },
 
+    shouldPerformSearch() {
+      return true
+    },
+
     async searchArtworks() {
-      if (!this.shouldPerformSearch()) return
-      this.loading = true
+      // Only perform search if there's a change in filters or query
+      if (
+        this.searchQuery !== this.lastSearchQuery ||
+        this.selectedMaterial?.value !== this.lastSelectedMaterial ||
+        this.selectedTechnique?.value !== this.lastSelectedTechnique ||
+        this.selectedType?.value !== this.lastSelectedType
+      ) {
+        this.loading = true
+        const response = await RijksmuseumService.searchArtworks(
+          this.searchQuery,
+          this.selectedMaterial?.value || null,
+          this.selectedTechnique?.value || null,
+          this.selectedType?.value || null,
+          1,
+          10
+        )
 
-      const typeValue = this.selectedType?.value || null
-      const materialValue = this.selectedMaterial?.value || null
-      const techniqueValue = this.selectedTechnique?.value || null
+        this.artworks = response.artObjects
+        this.lastSearchQuery = this.searchQuery
+        this.lastSelectedMaterial = this.selectedMaterial?.value || null
+        this.lastSelectedTechnique = this.selectedTechnique?.value || null
+        this.lastSelectedType = this.selectedType?.value || null
 
-      const response = await RijksmuseumService.searchArtworks(
-        this.searchQuery,
-        materialValue,
-        techniqueValue,
-        typeValue,
-        1,
-        10 // Limit to 10 results
-      )
-
-      this.artworks = response.artObjects
-      this.loading = false
-      this.reachedEnd = false
-      this.saveStateToLocalStorage()
+        this.loading = false
+        this.reachedEnd = false
+        this.page = 1
+        this.saveStateToLocalStorage()
+      }
     },
 
     async loadMoreArtworks() {
-      if (!this.shouldPerformSearch() || this.loading || this.reachedEnd) return
+      if (this.loading || this.reachedEnd) return
+
       this.loading = true
-      const page = Math.floor(this.artworks.length / 10) + 1
+      this.page += 1
       const response = await RijksmuseumService.searchArtworks(
-        this.searchQuery,
-        this.selectedMaterial?.value || null,
-        this.selectedTechnique?.value || null,
-        this.selectedType?.value || null,
-        page,
-        10 // Load 10 more results
+        this.lastSearchQuery,
+        this.lastSelectedMaterial,
+        this.lastSelectedTechnique,
+        this.lastSelectedType,
+        this.page,
+        10
       )
+
       this.artworks.push(...response.artObjects)
       this.loading = false
       this.reachedEnd = response.artObjects.length === 0
@@ -101,26 +121,17 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
       this.selectedMaterial = null
       this.selectedTechnique = null
       this.selectedType = null
-      this.artworks = []
       this.reachedEnd = false
       this.loading = false
       this.scrollPositions = {}
-      this.saveStateToLocalStorage()
-      this.searchArtworks()
-    },
+      this.page = 1
+      this.artworks = [] // Clear the artworks array
 
-    shouldPerformSearch() {
-      const conditions = [
-        this.searchQuery.trim() !== '',
-        this.selectedMaterial !== null,
-        this.selectedTechnique !== null,
-        this.selectedType !== null,
-        this.searchQuery.trim() !== this.lastSearchQuery,
-        this.selectedMaterial !== this.lastSelectedMaterial,
-        this.selectedTechnique !== this.lastSelectedTechnique,
-        this.selectedType !== this.lastSelectedType
-      ]
-      return conditions.some((condition) => condition === true)
+      setTimeout(() => {
+        if (this.shouldPerformSearch()) {
+          this.searchArtworks()
+        }
+      }, 1000) // Adjust delay as needed
     },
 
     saveStateToLocalStorage() {
@@ -135,12 +146,15 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
         lastSelectedMaterial: this.lastSelectedMaterial,
         lastSelectedTechnique: this.lastSelectedTechnique,
         lastSelectedType: this.lastSelectedType,
-        scrollPositions: this.scrollPositions
+        scrollPositions: this.scrollPositions,
+        page: this.page
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToStore))
+      localStorage.setItem('artworks', JSON.stringify(this.artworks)) // Store the fetched artworks in localStorage
     }
   }
 })
+
 const capitalizeFirstLetter = (str: string) => {
   return str.replace(/\b\w/g, (char) => char.toUpperCase())
 }
