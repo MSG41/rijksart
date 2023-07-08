@@ -35,7 +35,7 @@
 </template>
 
 <script lang="ts">
-import { onMounted, onBeforeUnmount, ref, computed, nextTick } from 'vue'
+import { onMounted, onBeforeUnmount, onActivated, ref, computed, nextTick } from 'vue'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
 import SearchComponent from '@/components/SearchComponent/SearchComponent.vue'
 import ArtworkCardComponent from '@/components/ArtworkCardComponent/ArtworkCardComponent.vue'
@@ -54,18 +54,23 @@ export default {
 
     let observer: IntersectionObserver | null = null
 
-    const showDescriptionText = computed(() => store.artworks.length === 0 && !store.loading)
+    const showDescriptionText = ref(false)
 
     onMounted(async () => {
-      store.initialize()
-      const { y = 0, page = 1 } = JSON.parse(localStorage.getItem('scrollPos') || '{}')
-      for (let i = 1; i <= page; i++) {
-        await store.loadMoreArtworks()
-      }
+      const { y = 0 } = JSON.parse(localStorage.getItem('scrollPos') || '{}')
 
       await nextTick()
       window.scrollTo(0, y)
       setupIntersectionObserver()
+      showDescriptionText.value = computeShowDescriptionText()
+    })
+
+    onBeforeUnmount(() => {
+      if (observer) {
+        observer.disconnect()
+      }
+      const y = window.scrollY
+      localStorage.setItem('scrollPos', JSON.stringify({ y }))
     })
 
     const setupIntersectionObserver = () => {
@@ -88,23 +93,22 @@ export default {
 
     const resetFilters = () => {
       store.resetFilters()
+      store.artworks = []
+      showDescriptionText.value = computeShowDescriptionText()
     }
-
-    onBeforeUnmount(() => {
-      if (observer) {
-        observer.disconnect()
-      }
-    })
 
     const handleClick = (artwork: ArtworkDetails) => {
       const y = window.scrollY
-      const page = store.page
-      localStorage.setItem('scrollPos', JSON.stringify({ y, page }))
+      localStorage.setItem('scrollPos', JSON.stringify({ y }))
       router.push({ name: 'artworkDetail', params: { objectNumber: artwork.objectNumber } })
     }
 
     const updateScrollPosition = (objectNumber: string, position: number) => {
       store.storeScrollPosition(objectNumber, position)
+    }
+
+    const computeShowDescriptionText = () => {
+      return store.artworks.length === 0 && !store.loading && store.searchQuery.length === 0
     }
 
     return {
