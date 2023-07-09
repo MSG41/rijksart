@@ -39,13 +39,9 @@
 </template>
 
 <script lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faFilter } from '@fortawesome/free-solid-svg-icons'
 import { useRijksmuseumStore } from '@/stores/rijksmuseumStore'
-import materials from '@/data/material.json'
-import techniques from '@/data/technique.json'
-import types from '@/data/type.json'
 import 'vue-select/dist/vue-select.css'
 import vSelect from 'vue-select'
 import { debounce } from 'lodash'
@@ -55,26 +51,40 @@ export default {
   setup() {
     const store = useRijksmuseumStore()
 
-    
     const showDropdowns = ref(false)
+    const searchArtworks = computed(() => {
+      if (
+        store.searchQuery.trim() === '' &&
+        !store.selectedMaterial &&
+        !store.selectedTechnique &&
+        !store.selectedType
+      ) {
+        return []
+      }
+
+      // Perform the search with the provided filters
+      return store.searchArtworks()
+    })
 
     const toggleDropdowns = () => {
       showDropdowns.value = !showDropdowns.value
     }
 
-    const debouncedSearchArtworks = debounce(store.searchArtworks, 300)
+    const debouncedSearchArtworks = debounce(() => {
+      searchArtworks.value
+    }, 500)
 
-    // Watch the selected filter values and update the original filter values in the store
+    // Watch the searchQuery in the store and trigger the debounced search
     watch(
-      [() => store.selectedMaterial, () => store.selectedTechnique, () => store.selectedType],
+      () => store.searchQuery,
       () => {
         debouncedSearchArtworks()
       }
     )
 
-    // Watch searchQuery in the store and trigger the debounced search
+    // Watch the selected filters in the store and trigger the debounced search
     watch(
-      () => store.searchQuery,
+      [() => store.selectedMaterial, () => store.selectedTechnique, () => store.selectedType],
       () => {
         debouncedSearchArtworks()
       }
@@ -84,7 +94,7 @@ export default {
       store,
       showDropdowns,
       toggleDropdowns,
-      debouncedSearchArtworks
+      searchArtworks
     }
   }
 }

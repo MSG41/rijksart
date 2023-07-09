@@ -24,8 +24,6 @@
         :key="artwork.objectNumber"
         :artwork="artwork"
         :loading="store.loading"
-        :scroll-position="store.scrollPositions[artwork.objectNumber]"
-        @update-scroll-position="updateScrollPosition(artwork.objectNumber, $event)"
         @click.native="handleClick(artwork)"
       ></ArtworkCardComponent>
 
@@ -50,65 +48,70 @@ export default {
   setup() {
     const store = useRijksmuseumStore()
     const loadMoreElement = ref<HTMLElement | null>(null)
-    const artworkGrid = ref<HTMLElement | null>(null)
+    const scrollListenerEnabled = ref(false)
 
-    let observer: IntersectionObserver | null = null
-
-    const showDescriptionText = ref(false)
+    const showDescriptionText = computed(() => {
+      return store.artworks.length === 0 && !store.loading
+    })
 
     onMounted(async () => {
-      const { y = 0 } = JSON.parse(localStorage.getItem('scrollPos') || '{}')
-
-      await nextTick()
+      const y = store.retrieveScrollPosition('home')
       window.scrollTo(0, y)
-      setupIntersectionObserver()
-      showDescriptionText.value = computeShowDescriptionText()
+      enableScrollListener()
     })
 
     onBeforeUnmount(() => {
-      if (observer) {
-        observer.disconnect()
-      }
+      disableScrollListener()
       const y = window.scrollY
-      localStorage.setItem('scrollPos', JSON.stringify({ y }))
+      store.storeScrollPosition('home', y)
     })
 
-    const setupIntersectionObserver = () => {
-      const options = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
-      }
-
-      observer = new IntersectionObserver(handleIntersection, options)
-      if (loadMoreElement.value) observer.observe(loadMoreElement.value)
+    const enableScrollListener = () => {
+      scrollListenerEnabled.value = true
+      window.addEventListener('scroll', handleScroll)
     }
 
-    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
-      const entry = entries[0]
-      if (entry.isIntersecting && !store.loading && !store.reachedEnd) {
-        store.loadMoreArtworks()
+    const disableScrollListener = () => {
+      scrollListenerEnabled.value = false
+      window.removeEventListener('scroll', handleScroll)
+    }
+
+    const handleScroll = () => {
+      if (
+        scrollListenerEnabled.value &&
+        !store.loading &&
+        !store.reachedEnd &&
+        store.shouldPerformSearch()
+      ) {
+        const scrollPosition =
+          window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0
+        const windowHeight =
+          window.innerHeight ||
+          document.documentElement.clientHeight ||
+          document.body.clientHeight ||
+          0
+        const documentHeight = Math.max(
+          document.body.scrollHeight || 0,
+          document.documentElement.scrollHeight || 0,
+          document.body.offsetHeight || 0,
+          document.documentElement.offsetHeight || 0,
+          document.body.clientHeight || 0,
+          document.documentElement.clientHeight || 0
+        )
+
+        if (scrollPosition + windowHeight >= documentHeight - 200) {
+          store.loadMoreArtworks()
+        }
       }
     }
 
     const resetFilters = () => {
       store.resetFilters()
-      store.artworks = []
-      showDescriptionText.value = computeShowDescriptionText()
     }
 
     const handleClick = (artwork: ArtworkDetails) => {
-      const y = window.scrollY
-      localStorage.setItem('scrollPos', JSON.stringify({ y }))
+      store.storeScrollPosition('home', window.scrollY)
       router.push({ name: 'artworkDetail', params: { objectNumber: artwork.objectNumber } })
-    }
-
-    const updateScrollPosition = (objectNumber: string, position: number) => {
-      store.storeScrollPosition(objectNumber, position)
-    }
-
-    const computeShowDescriptionText = () => {
-      return store.artworks.length === 0 && !store.loading && store.searchQuery.length === 0
     }
 
     return {
@@ -116,8 +119,7 @@ export default {
       loadMoreElement,
       resetFilters,
       showDescriptionText,
-      handleClick,
-      updateScrollPosition
+      handleClick
     }
   }
 }
