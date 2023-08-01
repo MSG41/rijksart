@@ -12,24 +12,24 @@
       />
       <div class="dropdowns-container" :class="{ open: showDropdowns }">
         <v-select
+          class="dd1 select-input"
+          :options="store.types"
+          v-model="store.selectedType"
+          placeholder="Types"
+          label="label"
+        />
+        <v-select
           class="dd1"
           :options="store.materials"
           v-model="store.selectedMaterial"
-          placeholder="Select material..."
+          placeholder="Materials"
           label="label"
         />
         <v-select
           class="dd1"
           :options="store.techniques"
           v-model="store.selectedTechnique"
-          placeholder="Select technique..."
-          label="label"
-        />
-        <v-select
-          class="dd1"
-          :options="store.types"
-          v-model="store.selectedType"
-          placeholder="Select type..."
+          placeholder="Techniques"
           label="label"
         />
       </div>
@@ -158,6 +158,10 @@ export default {
 .dd1 {
   width: 15rem;
   margin-bottom: 10px;
+}
+
+:deep(.vs__dropdown-toggle) {
+  cursor: pointer;
 }
 
 .search-input {
