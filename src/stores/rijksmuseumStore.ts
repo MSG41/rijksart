@@ -60,30 +60,36 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
         const typeFacet = response.facets.find((facet) => facet.name === 'type')
 
         if (materialFacet && materialFacet.facets) {
-          this.availableMaterials = materialFacet.facets.map((option) => ({
-            label: capitalizeFirstLetter(option.key),
-            value: option.key
-          }))
+          this.availableMaterials = sortData(
+            materialFacet.facets.map((option) => ({
+              label: capitalizeFirstLetter(option.key),
+              value: option.key
+            }))
+          )
         } else {
-          this.availableMaterials = this.materials
+          this.availableMaterials = sortData(this.materials)
         }
 
         if (techniqueFacet && techniqueFacet.facets) {
-          this.availableTechniques = techniqueFacet.facets.map((option) => ({
-            label: capitalizeFirstLetter(option.key),
-            value: option.key
-          }))
+          this.availableTechniques = sortData(
+            techniqueFacet.facets.map((option) => ({
+              label: capitalizeFirstLetter(option.key),
+              value: option.key
+            }))
+          )
         } else {
-          this.availableTechniques = this.techniques
+          this.availableTechniques = sortData(this.techniques)
         }
 
         if (typeFacet && typeFacet.facets) {
-          this.availableTypes = typeFacet.facets.map((option) => ({
-            label: capitalizeFirstLetter(option.key),
-            value: option.key
-          }))
+          this.availableTypes = sortData(
+            typeFacet.facets.map((option) => ({
+              label: capitalizeFirstLetter(option.key),
+              value: option.key
+            }))
+          )
         } else {
-          this.availableTypes = this.types
+          this.availableTypes = sortData(this.types)
         }
       }
     },
