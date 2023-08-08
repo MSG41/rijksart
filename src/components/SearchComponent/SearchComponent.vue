@@ -13,21 +13,23 @@
       <div class="dropdowns-container" :class="{ open: showDropdowns }">
         <v-select
           class="dd1 select-input"
-          :options="store.types"
+          :options="availableTypes"
           v-model="store.selectedType"
           placeholder="Types"
           label="label"
         />
+
         <v-select
           class="dd1"
-          :options="store.materials"
+          :options="availableMaterials"
           v-model="store.selectedMaterial"
           placeholder="Materials"
           label="label"
         />
+
         <v-select
           class="dd1"
-          :options="store.techniques"
+          :options="availableTechniques"
           v-model="store.selectedTechnique"
           placeholder="Techniques"
           label="label"
@@ -50,6 +52,19 @@ export default {
   components: { vSelect, FontAwesomeIcon },
   setup() {
     const store = useRijksmuseumStore()
+
+    const availableMaterials = computed(() => {
+      console.log('Available Materials:', store.availableMaterials)
+      return store.availableMaterials
+    })
+    const availableTechniques = computed(() => {
+      console.log('Available Techniques:', store.availableTechniques)
+      return store.availableTechniques
+    })
+    const availableTypes = computed(() => {
+      console.log('Available Types:', store.availableTypes)
+      return store.availableTypes
+    })
 
     const showDropdowns = ref(false)
     const searchArtworks = computed(() => {
@@ -85,16 +100,43 @@ export default {
     // Watch the selected filters in the store and trigger the debounced search
     watch(
       [() => store.selectedMaterial, () => store.selectedTechnique, () => store.selectedType],
-      () => {
+      async () => {
+        await store.updateAvailableOptions() // Await here to update available options first
         debouncedSearchArtworks()
       }
     )
 
+    // Compute the combined search query
+    const combinedSearchQuery = computed(() => {
+      const queryParts = []
+
+      if (store.searchQuery) {
+        queryParts.push(`Search: "${store.searchQuery}"`)
+      }
+
+      if (store.selectedMaterial) {
+        queryParts.push(`Material: "${store.selectedMaterial.value}"`) 
+      }
+
+      if (store.selectedTechnique) {
+        queryParts.push(`Technique: "${store.selectedTechnique.value}"`) 
+      }
+
+      if (store.selectedType) {
+        queryParts.push(`Type: "${store.selectedType.value}"`) 
+      }
+
+      return queryParts.join(', ')
+    })
     return {
       store,
       showDropdowns,
       toggleDropdowns,
-      searchArtworks
+      searchArtworks,
+      availableMaterials, 
+      availableTechniques,
+      availableTypes,
+      combinedSearchQuery 
     }
   }
 }

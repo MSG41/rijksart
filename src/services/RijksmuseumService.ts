@@ -1,6 +1,9 @@
-// RijksmuseumService.ts
 import axios, { type AxiosInstance } from 'axios'
-import { type RijksmuseumApiResponse, type ArtworkDetails } from '@/types/types'
+import {
+  type RijksmuseumApiResponse,
+  type ArtworkDetails,
+  type FacetsResponse
+} from '@/types/types'
 import { VITE_APP_API_KEY, VITE_APP_API_URL } from '../../env'
 
 export class RijksmuseumService {
@@ -23,7 +26,7 @@ export class RijksmuseumService {
     type: string | null,
     page: number,
     pageSize: number
-  ): Promise<{ count: number; artObjects: ArtworkDetails[] }> {
+  ): Promise<{ count: number; artObjects: ArtworkDetails[]; facets?: FacetsResponse }> {
     const params: Record<string, string | null> = {
       q: query,
       imgonly: 'true',
@@ -38,9 +41,9 @@ export class RijksmuseumService {
       params
     })
 
-    const { count, artObjects } = response.data
+    const { count, artObjects, facets } = response.data
 
-    return { count, artObjects }
+    return { count, artObjects, facets }
   }
 
   public static async fetchArtworkDetails(objectNumber: string): Promise<ArtworkDetails> {

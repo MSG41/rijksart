@@ -22,7 +22,10 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
     scrollPositions: {} as Record<string, number>,
     reachedEnd: false,
     page: 1,
-    cache: new Map<string, ArtworkDetails[]>()
+    cache: new Map<string, ArtworkDetails[]>(),
+    availableMaterials: sortData(materials),
+    availableTechniques: sortData(techniques),
+    availableTypes: sortData(types)
   }),
   actions: {
     setSelectedArtwork(artwork: ArtworkDetails) {
@@ -40,28 +43,72 @@ export const useRijksmuseumStore = defineStore('rijksmuseum', {
     storeScrollPosition(objectNumber: string, position: number) {
       this.scrollPositions[objectNumber] = position
     },
+
+    async updateAvailableOptions() {
+      const response = await RijksmuseumService.searchArtworks(
+        this.searchQuery,
+        this.selectedMaterial?.value ?? null,
+        this.selectedTechnique?.value ?? null,
+        this.selectedType?.value ?? null,
+        this.page,
+        1 // Set the page size to 1 to get facets
+      )
+
+      if (response.facets) {
+        const materialFacet = response.facets.find((facet) => facet.name === 'material')
+        const techniqueFacet = response.facets.find((facet) => facet.name === 'technique')
+        const typeFacet = response.facets.find((facet) => facet.name === 'type')
+
+        if (materialFacet && materialFacet.facets) {
+          this.availableMaterials = materialFacet.facets.map((option) => ({
+            label: capitalizeFirstLetter(option.key),
+            value: option.key
+          }))
+        } else {
+          this.availableMaterials = this.materials
+        }
+
+        if (techniqueFacet && techniqueFacet.facets) {
+          this.availableTechniques = techniqueFacet.facets.map((option) => ({
+            label: capitalizeFirstLetter(option.key),
+            value: option.key
+          }))
+        } else {
+          this.availableTechniques = this.techniques
+        }
+
+        if (typeFacet && typeFacet.facets) {
+          this.availableTypes = typeFacet.facets.map((option) => ({
+            label: capitalizeFirstLetter(option.key),
+            value: option.key
+          }))
+        } else {
+          this.availableTypes = this.types
+        }
+      }
+    },
+
     async searchArtworks() {
       this.loading = true
-      this.reachedEnd = false // Reset the reachedEnd property
+      this.reachedEnd = false
       try {
+        const response = await RijksmuseumService.searchArtworks(
+          this.searchQuery,
+          this.selectedMaterial?.value ?? null,
+          this.selectedTechnique?.value ?? null,
+          this.selectedType?.value ?? null,
+          this.page,
+          10
+        )
+
+        // Update available options based on the response and selected material
+        this.updateAvailableOptions()
+
+        this.artworks = response.artObjects.slice(0, 10)
         const cacheKey = this.getCacheKey()
-        const cachedResults = this.cache.get(cacheKey)
-        if (cachedResults) {
-          this.artworks = cachedResults
-        } else {
-          const response = await RijksmuseumService.searchArtworks(
-            this.searchQuery,
-            this.selectedMaterial?.value ?? null,
-            this.selectedTechnique?.value ?? null,
-            this.selectedType?.value ?? null,
-            1,
-            10
-          )
-          this.artworks = response.artObjects.slice(0, 10) // Limit the number of fetched artworks to 10
-          this.cache.set(cacheKey, this.artworks)
-          if (this.cache.size > CACHE_SIZE) {
-            this.cache.delete(this.cache.keys().next().value)
-          }
+        this.cache.set(cacheKey, this.artworks)
+        if (this.cache.size > CACHE_SIZE) {
+          this.cache.delete(this.cache.keys().next().value)
         }
         this.page = 1
       } catch (error) {

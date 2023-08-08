@@ -115,16 +115,11 @@ export interface Label {
   date: string | null
 }
 
-export type Facet = {
-  name: string
-  facets: any[]
-}
-
 export interface RijksmuseumApiResponse {
   elapsedMilliseconds?: number
   count: number
   artObjects: ArtworkDetails[]
-  facets?: Facet[]
+  facets?: FacetsResponse // Updated to use FacetsResponse instead of Facet[]
 }
 
 export type ArtworkDetails = {
@@ -140,10 +135,40 @@ export type ArtworkDetails = {
   techniques: string[]
   types: string[]
   artObject: ArtObject
-
 }
 
 export interface Suggestion {
   title: string
   artist: string
+}
+
+export type FacetItem = {
+  key: string
+}
+
+export type FacetOption = {
+  key: string
+  value: number
+}
+
+export type NestedFacet = {
+  key: string
+  value: number
+  facets?: NestedFacet[] // This is the important addition for nested facets
+}
+
+export type Facet = {
+  name: string
+  otherTerms: number
+  prettyName: number
+  options: FacetOption[]
+  facets?: NestedFacet[] // Add this property to represent nested facets
+}
+
+export type FacetsResponse = Facet[]
+
+export type ArtworksSearchResponse = {
+  count: number
+  artObjects: ArtworkDetails[]
+  facets?: FacetsResponse
 }
